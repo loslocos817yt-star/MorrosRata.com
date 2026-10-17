@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Niños rata.com</title>
+    <link rel="icon" type="image/png" href="assets/web/favicon.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            background-color: #121812;
+            background-image: radial-gradient(#1f2e1f 1px, transparent 1px), radial-gradient(#1f2e1f 1px, #121812 1px);
+            background-size: 20px 20px;
+            color: #111;
+            font-family: "MS PGothic", monospace;
+            margin: 0;
+            padding: 0;
+        }
+        .board-header {
+            text-align: center;
+            padding: 15px 0 5px 0;
+            background-color: #0b0f0b;
+        }
+        .board-logo {
+            max-height: 140px;
+            max-width: 90%;
+            display: block;
+            margin: 0 auto;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        .navbar {
+            background-color: #161c16;
+            border-top: 1px solid #334d33;
+            border-bottom: 2px solid #2e5c2e;
+            text-align: center;
+            padding: 6px 0;
+            margin-bottom: 15px;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        .navbar a {
+            color: #00ff66;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto 30px auto;
+            background-color: #cccccc;
+            border: 2px solid #3b8a3b;
+            padding: 10px;
+        }
+        .box-container {
+            background-color: #dcdcdc;
+            border: 1px solid #888;
+            padding: 8px;
+            margin-bottom: 15px;
+            font-size: 11px;
+        }
+        .box-container table {
+            width: 100%;
+        }
+        input[type="text"], input[type="password"], textarea {
+            width: 96%;
+            background-color: #fff;
+            border: 1px solid #777;
+            font-size: 11px;
+            font-family: monospace;
+            padding: 3px;
+        }
+        .post-card {
+            background-color: #e4e4e4;
+            border: 1px solid #3b8a3b;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        .post-header {
+            font-size: 11px;
+            background-color: #c4c4c4;
+            padding: 3px 6px;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #aaa;
+        }
+        .postername {
+            color: #006600;
+            font-weight: bold;
+        }
+        .message {
+            font-size: 12px;
+            line-height: 1.4;
+            color: #111;
+            word-break: break-all;
+            white-space: pre-wrap;
+            margin-bottom: 8px;
+        }
+        .comments-section {
+            margin-left: 15px;
+            border-left: 2px solid #3b8a3b;
+            padding-left: 8px;
+            margin-top: 8px;
+        }
+        .comment-card {
+            background-color: #d6d6d6;
+            border: 1px solid #bcbcbc;
+            padding: 4px 6px;
+            margin-bottom: 4px;
+            font-size: 11px;
+        }
+        .reply-btn, .delete-btn {
+            font-size: 10px;
+            cursor: pointer;
+            text-decoration: underline;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        .reply-btn {
+            color: #0000ee;
+        }
+        .delete-btn {
+            color: #cc0000;
+            margin-left: 8px;
+        }
+        .btn-chan {
+            background-color: #dcdcdc;
+            border: 2px outset #aaa;
+            font-family: monospace;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 3px 8px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        .btn-chan:active {
+            border-style: inset;
+        }
+        #status-msg, #post-status {
+            font-weight: bold;
+            margin-top: 5px;
+            font-size: 11px;
+        }
+        .char-counter {
+            font-size: 10px;
+            color: #555;
+            text-align: right;
+            margin-top: 2px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 20px;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Encabezado con Logo -->
+    <div class="board-header">
+        <img src="assets/web/logo.png" alt="Logo" class="board-logo" onerror="this.style.display='none'">
+    </div>
+
+    <!-- Barra de Navegación -->
+    <div class="navbar">
+        <a onclick="scrollToPostBox()">[Nuevo Tema]</a>
+        <a onclick="cargarPosts()">[Refrescar]</a>
+        <a id="nav-login-btn" onclick="focusLogin()">[Login]</a>
+    </div>
+
+    <!-- Contenedor Principal -->
+    <div class="main-container">
+
+        <!-- LOGIN / REGISTRO -->
+        <div class="box-container" id="auth-box">
+            <form onsubmit="return false;">
+                <table>
+                    <tr>
+                        <td style="width: 80px;">Correo:</td>
+                        <td><input type="text" id="email" placeholder="correo@ejemplo.com" required></td>
+                    </tr>
+                    <tr>
+                        <td>Contraseña:</td>
+                        <td><input type="password" id="password" placeholder="********" required></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td style="padding-top: 5px;">
+                            <button type="button" class="btn-chan" onclick="handleSignIn()">Entrar</button>
+                            <button type="button" class="btn-chan" onclick="handleSignUp()">Crear Cuenta</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" align="center">
+                            <div id="status-msg"></div>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+
+        <!-- PUBLICAR POST -->
+        <div class="box-container" id="post-box" style="display: none;">
+            <form onsubmit="return false;">
+                <table>
+                    <tr>
+                        <td colspan="2" style="font-weight: bold; padding-bottom: 5px;">
+                            Usuario activo: <span id="current-user-display" class="postername"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 70px;">Mensaje:</td>
+                        <td>
+                            <textarea id="p-content" rows="3" maxlength="500" placeholder="Escribe tu publicación (máx. 500 caracteres)..." oninput="actualizarContador()" required></textarea>
+                            <div class="char-counter" id="char-counter">500 / 500</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td style="padding-top: 5px;">
+                            <button type="button" class="btn-chan" onclick="enviarPost()">Publicar</button>
+                            <button type="button" class="btn-chan" onclick="handleSignOut()">Cerrar Sesión</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" align="center">
+                            <div id="post-status"></div>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #aaa; margin: 10px 0;">
+
+        <!-- FEED DE POSTS Y COMENTARIOS -->
+        <div class="thread" id="feed">
+            <div style="text-align:center; font-size:11px;">Cargando publicaciones...</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Niños rata.com
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://rioyrsemrzcznwhjwanj.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpb3lyc2Vtcnpjem53aGp3YW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNjUwNDAsImV4cCI6MjEwNzg0MTA0MH0.lkjOmIPdqWCWm6h42RkJNjnjFciFQxATcsTx8knPUeg';
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentUserEmail = '';
+
+        // CONTADOR DE CARACTERES
+        function actualizarContador() {
+            let textarea = document.getElementById('p-content');
+            let counter = document.getElementById('char-counter');
+            let restantes = 500 - textarea.value.length;
+            counter.innerText = `${restantes} / 500`;
+        }
+
+        // AUTENTICACIÓN
+        async function handleSignUp() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const msg = document.getElementById('status-msg');
+
+            if (!email || !password) {
+                msg.style.color = "red";
+                msg.innerText = "Escribe correo y contraseña.";
+                return;
+            }
+
+            msg.style.color = "blue";
+            msg.innerText = "Registrando...";
+
+            const { data, error } = await supabaseClient.auth.signUp({ email, password });
+            if (error) {
+                msg.style.color = "red";
+                msg.innerText = "Error: " + error.message;
+                return;
+            }
+
+            if (data && data.user) {
+                const usernameVal = email.split('@')[0];
+                await supabaseClient.from('users').insert([{ username: usernameVal }]);
+                msg.style.color = "green";
+                msg.innerText = "¡Cuenta creada!";
+                checkSession();
+            }
+        }
+
+        async function handleSignIn() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const msg = document.getElementById('status-msg');
+
+            if (!email || !password) {
+                msg.style.color = "red";
+                msg.innerText = "Escribe correo y contraseña.";
+                return;
+            }
+
+            msg.style.color = "blue";
+            msg.innerText = "Conectando...";
+
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) {
+                msg.style.color = "red";
+                msg.innerText = "Error: " + error.message;
+            } else {
+                msg.style.color = "green";
+                msg.innerText = "¡Bienvenido!";
+                checkSession();
+            }
+        }
+
+        async function handleSignOut() {
+            await supabaseClient.auth.signOut();
+            checkSession();
+        }
+
+        async function checkSession() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            const authBox = document.getElementById('auth-box');
+            const postBox = document.getElementById('post-box');
+            const userDisplay = document.getElementById('current-user-display');
+            const navLoginBtn = document.getElementById('nav-login-btn');
+
+            if (session) {
+                currentUserEmail = session.user.email;
+                userDisplay.innerText = currentUserEmail.split('@')[0];
+                authBox.style.display = 'none';
+                postBox.style.display = 'block';
+                navLoginBtn.innerText = '[Cuenta Activa]';
+            } else {
+                currentUserEmail = '';
+                authBox.style.display = 'block';
+                postBox.style.display = 'none';
+                navLoginBtn.innerText = '[Login]';
+                document.getElementById('status-msg').innerText = '';
+            }
+            cargarPosts();
+        }
+
+        function scrollToPostBox() {
+            if (currentUserEmail) {
+                document.getElementById('p-content').focus();
+            } else {
+                document.getElementById('email').focus();
+            }
+        }
+
+        function focusLogin() {
+            if (!currentUserEmail) {
+                document.getElementById('email').focus();
+            }
+        }
+
+        // PUBLICAR POST EN jodidosPOST
+        async function enviarPost() {
+            let content = document.getElementById('p-content').value.trim();
+            let status = document.getElementById('post-status');
+
+            if (!content) {
+                status.style.color = 'red';
+                status.innerText = "Escribe un mensaje.";
+                return;
+            }
+
+            status.style.color = 'blue';
+            status.innerText = "Publicando...";
+
+            let authorName = currentUserEmail ? currentUserEmail.split('@')[0] : 'Anónimo';
+
+            let { error } = await supabaseClient.from('jodidosPOST').insert([
+                { username: authorName, content: content }
+            ]);
+
+            if (error) {
+                status.style.color = 'red';
+                status.innerText = "Error: " + error.message;
+            } else {
+                status.style.color = 'green';
+                status.innerText = "¡Publicado!";
+                document.getElementById('p-content').value = '';
+                actualizarContador();
+                cargarPosts();
+            }
+        }
+
+        // BORRAR POST PROPIO
+        async function borrarPost(postId) {
+            if (!confirm("¿Seguro que quieres borrar esta publicación?")) return;
+
+            let { error } = await supabaseClient.from('jodidosPOST').delete().eq('id', postId);
+            if (!error) {
+                cargarPosts();
+            } else {
+                alert("Error al borrar: " + error.message);
+            }
+        }
+
+        // PUBLICAR COMENTARIO EN JodeteComentarios
+        async function enviarComentario(postId) {
+            let input = document.getElementById(`comment-input-${postId}`);
+            let content = input.value.trim();
+
+            if (!content) return;
+
+            let authorName = currentUserEmail ? currentUserEmail.split('@')[0] : 'Anónimo';
+
+            let { error } = await supabaseClient.from('JodeteComentarios').insert([
+                { post_ID: postId, username: authorName, content: content }
+            ]);
+
+            if (!error) {
+                input.value = '';
+                cargarPosts();
+            } else {
+                alert("Error al comentar: " + error.message);
+            }
+        }
+
+        // BORRAR COMENTARIO PROPIO
+        async function borrarComentario(commentId) {
+            if (!confirm("¿Seguro que quieres borrar este comentario?")) return;
+
+            let { error } = await supabaseClient.from('JodeteComentarios').delete().eq('id', commentId);
+            if (!error) {
+                cargarPosts();
+            } else {
+                alert("Error al borrar el comentario: " + error.message);
+            }
+        }
+
+        function toggleReplyBox(postId) {
+            let box = document.getElementById(`reply-form-${postId}`);
+            box.style.display = box.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // CARGAR POSTS Y COMENTARIOS
+        async function cargarPosts() {
+            let feed = document.getElementById('feed');
+            let currentUsername = currentUserEmail ? currentUserEmail.split('@')[0] : '';
+
+            let { data: posts, error } = await supabaseClient.from('jodidosPOST').select('*').order('created_at', { ascending: false });
+
+            if (error) {
+                feed.innerHTML = `<div style="color:red; text-align:center;">Error cargando posts: ${error.message}</div>`;
+                return;
+            }
+
+            if (!posts || posts.length === 0) {
+                feed.innerHTML = `<div style="text-align:center; font-size:11px;">No hay publicaciones todavía.</div>`;
+                return;
+            }
+
+            let { data: comentarios } = await supabaseClient.from('JodeteComentarios').select('*').order('created_at', { ascending: true });
+
+            feed.innerHTML = '';
+            posts.forEach(p => {
+                let fecha = new Date(p.created_at).toLocaleString();
+                let misComentarios = comentarios ? comentarios.filter(c => c.post_ID === p.id) : [];
+                let commentsHTML = '';
+
+                misComentarios.forEach(c => {
+                    let cFecha = new Date(c.created_at).toLocaleString();
+                    let esMiComentario = currentUsername && currentUsername === c.username;
+                    let deleteCommentBtn = esMiComentario ? `<span class="delete-btn" onclick="borrarComentario(${c.id})">[Borrar]</span>` : '';
+
+                    commentsHTML += `
+                        <div class="comment-card">
+                            <span class="postername">${escapeHtml(c.username)}</span> 
+                            <span style="color:#666; font-size:10px;">${cFecha}</span>
+                            ${deleteCommentBtn}
+                            <div style="margin-top:2px;">${escapeHtml(c.content)}</div>
+                        </div>
+                    `;
+                });
+
+                let replyFormHTML = currentUserEmail ? `
+                    <div id="reply-form-${p.id}" style="display:none; margin-top:8px;">
+                        <input type="text" id="comment-input-${p.id}" maxlength="500" placeholder="Escribe tu respuesta (máx. 500 carac.)..." style="width:70%;">
+                        <button class="btn-chan" onclick="enviarComentario(${p.id})">Enviar</button>
+                    </div>
+                ` : `<div style="font-size:10px; color:#666; margin-top:5px;">(Inicia sesión para responder)</div>`;
+
+                let esMiPost = currentUsername && currentUsername === p.username;
+                let deletePostBtn = esMiPost ? `<span class="delete-btn" onclick="borrarPost(${p.id})">[Borrar]</span>` : '';
+
+                feed.innerHTML += `
+                    <div class="post-card">
+                        <div class="post-header">
+                            <span class="postername">${escapeHtml(p.username)}</span> 
+                            <span>${fecha}</span> 
+                            <span style="float:right;">No. ${p.id}</span>
+                        </div>
+                        <div class="message">${escapeHtml(p.content)}</div>
+                        
+                        <span class="reply-btn" onclick="toggleReplyBox(${p.id})">[Responder]</span> (${misComentarios.length} comentarios)
+                        ${deletePostBtn}
+
+                        ${replyFormHTML}
+
+                        <div class="comments-section">
+                            ${commentsHTML}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function escapeHtml(text) {
+            return text ? text.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t])) : '';
+        }
+
+        checkSession();
+    </script>
+</body>
+</html>
+
