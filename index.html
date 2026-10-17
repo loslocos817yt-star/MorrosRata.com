@@ -54,9 +54,38 @@
         .navbar a:hover {
             text-decoration: underline;
         }
+
+        /* BANNER DE ANUNCIOS RETRO */
+        .ad-container {
+            text-align: center;
+            margin: 10px auto;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .ad-banner {
+            border: 2px outset #666;
+            background-color: #000;
+            color: #00ff00;
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .ad-banner span {
+            color: #ff0055;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
         .main-container {
             max-width: 800px;
-            margin: 0 auto 30px auto;
+            margin: 0 auto 20px auto;
             background-color: #cccccc;
             border: 2px solid #3b8a3b;
             padding: 10px;
@@ -71,7 +100,7 @@
         .box-container table {
             width: 100%;
         }
-        input[type="text"], input[type="password"], textarea {
+        input[type="text"], textarea {
             width: 96%;
             background-color: #fff;
             border: 1px solid #777;
@@ -184,6 +213,13 @@
         <a id="nav-login-btn" onclick="focusLogin()">[Login]</a>
     </div>
 
+    <!-- ANUNCIO SUPERIOR ESTILO RETRO -->
+    <div class="ad-container">
+        <div class="ad-banner" onclick="alert('¡FELICIDADES! Ganaste 1,000,000 de Robux gratis.')">
+            <span>[ANUNCIO]</span> ¡DESCARGA MINECRAFT 1.20 GRATIS 100% NO FAKE REAL MEGAMEDIAFIRE SIN VIRUS! <span>[CLICK AQUÍ]</span>
+        </div>
+    </div>
+
     <!-- Contenedor Principal -->
     <div class="main-container">
 
@@ -197,7 +233,7 @@
                     </tr>
                     <tr>
                         <td>Contraseña:</td>
-                        <td><input type="password" id="password" placeholder="********" required></td>
+                        <td><input type="text" id="password" placeholder="Escribe tu contraseña..." required></td>
                     </tr>
                     <tr>
                         <td></td>
@@ -255,6 +291,13 @@
         </div>
     </div>
 
+    <!-- ANUNCIO INFERIOR -->
+    <div class="ad-container">
+        <div class="ad-banner" onclick="alert('¡Atención Rata! Tu Memoria RAM ha sido optimizada al 100%.')">
+            🔥 ¿INTERNET LENTO? ¡DESCARGA MÁS MEMORIA RAM GRATIS AQUÍ! 🔥
+        </div>
+    </div>
+
     <div class="footer">
         Niños rata.com
     </div>
@@ -266,7 +309,6 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentUserEmail = '';
 
-        // CONTADOR DE CARACTERES
         function actualizarContador() {
             let textarea = document.getElementById('p-content');
             let counter = document.getElementById('char-counter');
@@ -372,7 +414,7 @@
             }
         }
 
-        // PUBLICAR POST EN jodidosPOST
+        // PUBLICAR POST
         async function enviarPost() {
             let content = document.getElementById('p-content').value.trim();
             let status = document.getElementById('post-status');
@@ -404,7 +446,6 @@
             }
         }
 
-        // BORRAR POST PROPIO
         async function borrarPost(postId) {
             if (!confirm("¿Seguro que quieres borrar esta publicación?")) return;
 
@@ -416,7 +457,6 @@
             }
         }
 
-        // PUBLICAR COMENTARIO EN JodeteComentarios
         async function enviarComentario(postId) {
             let input = document.getElementById(`comment-input-${postId}`);
             let content = input.value.trim();
@@ -437,7 +477,6 @@
             }
         }
 
-        // BORRAR COMENTARIO PROPIO
         async function borrarComentario(commentId) {
             if (!confirm("¿Seguro que quieres borrar este comentario?")) return;
 
@@ -506,32 +545,4 @@
 
                 feed.innerHTML += `
                     <div class="post-card">
-                        <div class="post-header">
-                            <span class="postername">${escapeHtml(p.username)}</span> 
-                            <span>${fecha}</span> 
-                            <span style="float:right;">No. ${p.id}</span>
-                        </div>
-                        <div class="message">${escapeHtml(p.content)}</div>
-                        
-                        <span class="reply-btn" onclick="toggleReplyBox(${p.id})">[Responder]</span> (${misComentarios.length} comentarios)
-                        ${deletePostBtn}
-
-                        ${replyFormHTML}
-
-                        <div class="comments-section">
-                            ${commentsHTML}
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function escapeHtml(text) {
-            return text ? text.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t])) : '';
-        }
-
-        checkSession();
-    </script>
-</body>
-</html>
-
+               
