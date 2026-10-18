@@ -5,170 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Niños rata.com</title>
     <link rel="icon" type="image/png" href="assets/web/favicon.png">
+    <link rel="stylesheet" href="code/style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body {
-            background-color: #121812;
-            background-image: radial-gradient(#1f2e1f 1px, transparent 1px), radial-gradient(#1f2e1f 1px, #121812 1px);
-            background-size: 20px 20px;
-            color: #111;
-            font-family: "MS PGothic", monospace;
-            margin: 0;
-            padding: 0;
-        }
-        .board-header {
-            text-align: center;
-            padding: 15px 0 5px 0;
-            background-color: #0b0f0b;
-        }
-        .board-logo {
-            max-height: 140px;
-            max-width: 90%;
-            display: block;
-            margin: 0 auto;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-        .navbar {
-            background-color: #161c16;
-            border-top: 1px solid #334d33;
-            border-bottom: 2px solid #2e5c2e;
-            text-align: center;
-            padding: 6px 0;
-            margin-bottom: 15px;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-        .navbar a {
-            color: #00ff66;
-            text-decoration: none;
-            margin: 0 10px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .navbar a:hover {
-            text-decoration: underline;
-        }
-        .main-container {
-            max-width: 800px;
-            margin: 0 auto 20px auto;
-            background-color: #cccccc;
-            border: 2px solid #3b8a3b;
-            padding: 10px;
-        }
-        .box-container {
-            background-color: #dcdcdc;
-            border: 1px solid #888;
-            padding: 8px;
-            margin-bottom: 15px;
-            font-size: 11px;
-        }
-        .box-container table {
-            width: 100%;
-        }
-        input[type="text"], textarea {
-            width: 96%;
-            background-color: #fff;
-            border: 1px solid #777;
-            font-size: 11px;
-            font-family: monospace;
-            padding: 3px;
-        }
-        .post-card {
-            background-color: #e4e4e4;
-            border: 1px solid #3b8a3b;
-            padding: 8px;
-            margin-bottom: 10px;
-        }
-        .post-header {
-            font-size: 11px;
-            background-color: #c4c4c4;
-            padding: 3px 6px;
-            margin-bottom: 6px;
-            border-bottom: 1px solid #aaa;
-        }
-        .postername {
-            color: #006600;
-            font-weight: bold;
-        }
-        .message {
-            font-size: 12px;
-            line-height: 1.4;
-            color: #111;
-            word-break: break-all;
-            white-space: pre-wrap;
-            margin-bottom: 8px;
-        }
-        .comments-section {
-            margin-left: 15px;
-            border-left: 2px solid #3b8a3b;
-            padding-left: 8px;
-            margin-top: 8px;
-        }
-        .comment-card {
-            background-color: #d6d6d6;
-            border: 1px solid #bcbcbc;
-            padding: 4px 6px;
-            margin-bottom: 4px;
-            font-size: 11px;
-        }
-        .reply-btn, .delete-btn {
-            font-size: 10px;
-            cursor: pointer;
-            text-decoration: underline;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-        .reply-btn {
-            color: #0000ee;
-        }
-        .delete-btn {
-            color: #cc0000;
-            margin-left: 8px;
-        }
-        .btn-chan {
-            background-color: #dcdcdc;
-            border: 2px outset #aaa;
-            font-family: monospace;
-            font-size: 11px;
-            font-weight: bold;
-            padding: 3px 8px;
-            cursor: pointer;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-        .btn-chan:active {
-            border-style: inset;
-        }
-        #status-msg, #post-status {
-            font-weight: bold;
-            margin-top: 5px;
-            font-size: 11px;
-        }
-        .char-counter {
-            font-size: 10px;
-            color: #555;
-            text-align: right;
-            margin-top: 2px;
-        }
-        .footer {
-            text-align: center;
-            font-size: 10px;
-            color: #888;
-            margin-bottom: 20px;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-    </style>
 </head>
 <body>
 
@@ -187,8 +25,11 @@
     <!-- Contenedor Principal -->
     <div class="main-container">
 
-        <!-- LOGIN / REGISTRO -->
+        <!-- LOGIN / REGISTRO CON PATTITEXTEC ACCOUNTS -->
         <div class="box-container" id="auth-box">
+            <div class="account-brand-header">
+                <img src="assets/web/PattitexTECaccounts.png" alt="PattitexTEC Accounts" class="account-brand-logo">
+            </div>
             <form onsubmit="return false;">
                 <table>
                     <tr>
@@ -215,8 +56,11 @@
             </form>
         </div>
 
-        <!-- PUBLICAR POST -->
+        <!-- PUBLICAR POST / PERFIL DE USUARIO ACTIVO -->
         <div class="box-container" id="post-box" style="display: none;">
+            <div class="account-brand-header">
+                <img src="assets/web/PattitexTECaccounts.png" alt="PattitexTEC Accounts" class="account-brand-logo">
+            </div>
             <form onsubmit="return false;">
                 <table>
                     <tr>
@@ -482,7 +326,7 @@
 
                     commentsHTML += `
                         <div class="comment-card">
-                            <span class="postername">${escapeHtml(c.username)}</span> 
+                            <span class="postername">${escapeHtml(c.username)}</span>
                             <span style="color:#666; font-size:10px;">${cFecha}</span>
                             ${deleteCommentBtn}
                             <div style="margin-top:2px;">${escapeHtml(c.content)}</div>
@@ -503,12 +347,12 @@
                 feed.innerHTML += `
                     <div class="post-card">
                         <div class="post-header">
-                            <span class="postername">${escapeHtml(p.username)}</span> 
-                            <span>${fecha}</span> 
+                            <span class="postername">${escapeHtml(p.username)}</span>
+                            <span>${fecha}</span>
                             <span style="float:right;">No. ${p.id}</span>
                         </div>
                         <div class="message">${escapeHtml(p.content)}</div>
-                        
+
                         <span class="reply-btn" onclick="toggleReplyBox(${p.id})">[Responder]</span> (${misComentarios.length} comentarios)
                         ${deletePostBtn}
 
