@@ -15,10 +15,8 @@
         <img src="assets/web/logo.png" alt="Logo" class="board-logo" onerror="this.style.display='none'">
     </div>
 
-    <!-- Barra de Navegación -->
+    <!-- Barra de Navegación Limpia -->
     <div class="navbar">
-        <a onclick="scrollToPostBox()">[Nuevo Tema]</a>
-        <a onclick="cargarPosts()">[Refrescar]</a>
         <a id="nav-login-btn" onclick="focusLogin()">[Login]</a>
     </div>
 
@@ -56,16 +54,16 @@
             </form>
         </div>
 
-        <!-- PUBLICAR POST Y PERFIL DE USUARIO -->
+        <!-- PANEL DE USUARIO CON BOTÓN [+] ESTILO REDDIT -->
         <div class="box-container" id="post-box" style="display: none;">
             <!-- Pestañas de Navegación con [+] -->
             <div style="margin-bottom: 10px; border-bottom: 1px solid #aaa; padding-bottom: 5px; text-align: center;">
-                <button class="btn-chan" onclick="verTab('publicar')">[+]</button>
+                <button class="btn-chan" onclick="togglePublishBox()">[+]</button>
                 <button class="btn-chan" onclick="verTab('perfil')">[Información del Perfil]</button>
             </div>
 
-            <!-- TAB 1: PUBLICAR (Sin logo) -->
-            <div id="tab-publicar">
+            <!-- TAB 1: FORMULARIO DE PUBLICACIÓN (Oculto por defecto, se abre con el [+]) -->
+            <div id="tab-publicar" style="display: none;">
                 <form onsubmit="return false;">
                     <table>
                         <tr>
@@ -74,15 +72,13 @@
                             </td>
                         </tr>
                         <tr>
-                            <td style="width: 70px;">Mensaje:</td>
-                            <td>
+                            <td colspan="2">
                                 <textarea id="p-content" rows="3" maxlength="500" placeholder="Escribe tu publicación (máx. 500 caracteres)..." oninput="actualizarContador()" required></textarea>
                                 <div class="char-counter" id="char-counter">500 / 500</div>
                             </td>
                         </tr>
                         <tr>
-                            <td></td>
-                            <td style="padding-top: 5px;">
+                            <td colspan="2" style="padding-top: 5px; text-align: right;">
                                 <button type="button" class="btn-chan" onclick="enviarPost()">Publicar</button>
                                 <button type="button" class="btn-chan" onclick="handleSignOut()">Cerrar Sesión</button>
                             </td>
@@ -96,7 +92,7 @@
                 </form>
             </div>
 
-            <!-- TAB 2: DETALLES DEL PERFIL (Con logo exclusivo aquí) -->
+            <!-- TAB 2: DETALLES DEL PERFIL -->
             <div id="tab-perfil" style="display: none;">
                 <div class="account-brand-header">
                     <img src="assets/web/PattitexTECaccounts.png" alt="PattitexTEC Accounts" class="account-brand-logo" onerror="this.style.display='none'">
@@ -146,6 +142,16 @@
 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentUserEmail = '';
+
+        function togglePublishBox() {
+            let pubDiv = document.getElementById('tab-publicar');
+            let perfilDiv = document.getElementById('tab-perfil');
+            perfilDiv.style.display = 'none';
+            pubDiv.style.display = pubDiv.style.display === 'none' ? 'block' : 'none';
+            if(pubDiv.style.display === 'block') {
+                document.getElementById('p-content').focus();
+            }
+        }
 
         function verTab(tabName) {
             document.getElementById('tab-publicar').style.display = tabName === 'publicar' ? 'block' : 'none';
@@ -249,15 +255,6 @@
             }
         }
 
-        function scrollToPostBox() {
-            if (currentUserEmail) {
-                verTab('publicar');
-                document.getElementById('p-content').focus();
-            } else {
-                document.getElementById('email').focus();
-            }
-        }
-
         function focusLogin() {
             if (currentUserEmail) {
                 verTab('perfil');
@@ -294,6 +291,7 @@
                 status.innerText = "¡Publicado!";
                 document.getElementById('p-content').value = '';
                 actualizarContador();
+                document.getElementById('tab-publicar').style.display = 'none';
                 cargarPosts();
             }
         }
@@ -387,7 +385,7 @@
 
                 let replyFormHTML = currentUserEmail ? `
                     <div id="reply-form-${p.id}" style="display:none; margin-top:8px;">
-                        <input type="text" id="comment-input-${p.id}" maxlength="500" placeholder="Escribe tu respuesta (máx. 500 carac.)..." style="width:70%;">
+                        <input type="text" id="comment-input-${p.id}" maxlength="500" placeholder="Escribe tu respuesta..." style="width:70%;">
                         <button class="btn-chan" onclick="enviarComentario(${p.id})">Enviar</button>
                     </div>
                 ` : `<div style="font-size:10px; color:#666; margin-top:5px;">(Inicia sesión para responder)</div>`;
@@ -421,7 +419,7 @@
             return text ? text.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t])) : '';
         }
 
-        // Inicialización al cargar la página
+        // Inicialización
         checkSession();
         cargarPosts();
     </script>
