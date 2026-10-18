@@ -25,10 +25,10 @@
     <!-- Contenedor Principal -->
     <div class="main-container">
 
-        <!-- LOGIN / REGISTRO CON PATTITEXTEC ACCOUNTS (Única sección con el logo) -->
+        <!-- LOGIN / REGISTRO CON PATTITEXTEC ACCOUNTS -->
         <div class="box-container" id="auth-box">
             <div class="account-brand-header">
-                <img src="assets/web/PattitexTECaccounts.png" alt="PattitexTEC Accounts" class="account-brand-logo">
+                <img src="assets/web/PattitexTECaccounts.png" alt="PattitexTEC Accounts" class="account-brand-logo" onerror="this.src='assets/web/logo.png'">
             </div>
             <form onsubmit="return false;">
                 <table>
@@ -56,36 +56,73 @@
             </form>
         </div>
 
-        <!-- PUBLICAR POST (Sin logo de cuenta) -->
+        <!-- PUBLICAR POST Y PANEL DE PERFIL DE USUARIO -->
         <div class="box-container" id="post-box" style="display: none;">
-            <form onsubmit="return false;">
-                <table>
+            <!-- Pestañas de Navegación del Usuario -->
+            <div style="margin-bottom: 10px; border-bottom: 1px solid #aaa; padding-bottom: 5px;">
+                <button class="btn-chan" onclick="verTab('publicar')">[Crear Publicación]</button>
+                <button class="btn-chan" onclick="verTab('perfil')">[Información del Perfil]</button>
+            </div>
+
+            <!-- TAB 1: FORMULARIO DE PUBLICACIÓN -->
+            <div id="tab-publicar">
+                <form onsubmit="return false;">
+                    <table>
+                        <tr>
+                            <td colspan="2" style="font-weight: bold; padding-bottom: 5px;">
+                                Publicando como: <span id="current-user-display" class="postername"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width: 70px;">Mensaje:</td>
+                            <td>
+                                <textarea id="p-content" rows="3" maxlength="500" placeholder="Escribe tu publicación (máx. 500 caracteres)..." oninput="actualizarContador()" required></textarea>
+                                <div class="char-counter" id="char-counter">500 / 500</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td style="padding-top: 5px;">
+                                <button type="button" class="btn-chan" onclick="enviarPost()">Publicar</button>
+                                <button type="button" class="btn-chan" onclick="handleSignOut()">Cerrar Sesión</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" align="center">
+                                <div id="post-status"></div>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+
+            <!-- TAB 2: DETALLES E INFORMACIÓN DEL PERFIL -->
+            <div id="tab-perfil" style="display: none;">
+                <div style="font-weight: bold; margin-bottom: 8px; color: #1b3d1b; border-bottom: 1px dashed #999; padding-bottom: 3px;">
+                    📋 Detalles de PattitexTEC Accounts
+                </div>
+                <table style="width: 100%; font-size: 11px; line-height: 1.6;">
                     <tr>
-                        <td colspan="2" style="font-weight: bold; padding-bottom: 5px;">
-                            Usuario activo: <span id="current-user-display" class="postername"></span>
-                        </td>
+                        <td style="width: 110px; font-weight: bold;">Usuario (Alias):</td>
+                        <td id="profile-username" class="postername">-</td>
                     </tr>
                     <tr>
-                        <td style="width: 70px;">Mensaje:</td>
-                        <td>
-                            <textarea id="p-content" rows="3" maxlength="500" placeholder="Escribe tu publicación (máx. 500 caracteres)..." oninput="actualizarContador()" required></textarea>
-                            <div class="char-counter" id="char-counter">500 / 500</div>
-                        </td>
+                        <td style="font-weight: bold;">Correo:</td>
+                        <td id="profile-email">-</td>
                     </tr>
                     <tr>
-                        <td></td>
-                        <td style="padding-top: 5px;">
-                            <button type="button" class="btn-chan" onclick="enviarPost()">Publicar</button>
-                            <button type="button" class="btn-chan" onclick="handleSignOut()">Cerrar Sesión</button>
-                        </td>
+                        <td style="font-weight: bold;">ID de Usuario:</td>
+                        <td id="profile-id" style="font-family: monospace; font-size: 10px; color: #444;">-</td>
                     </tr>
                     <tr>
-                        <td colspan="2" align="center">
-                            <div id="post-status"></div>
-                        </td>
+                        <td style="font-weight: bold;">Último Acceso:</td>
+                        <td id="profile-last-login">-</td>
                     </tr>
                 </table>
-            </form>
+                <div style="margin-top: 10px; text-align: right;">
+                    <button type="button" class="btn-chan" onclick="handleSignOut()">Cerrar Sesión</button>
+                </div>
+            </div>
         </div>
 
         <hr style="border: 0; border-top: 1px solid #aaa; margin: 10px 0;">
@@ -106,6 +143,11 @@
 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentUserEmail = '';
+
+        function verTab(tabName) {
+            document.getElementById('tab-publicar').style.display = tabName === 'publicar' ? 'block' : 'none';
+            document.getElementById('tab-perfil').style.display = tabName === 'perfil' ? 'block' : 'none';
+        }
 
         function actualizarContador() {
             let textarea = document.getElementById('p-content');
@@ -184,7 +226,15 @@
 
             if (session) {
                 currentUserEmail = session.user.email;
-                userDisplay.innerText = currentUserEmail.split('@')[0];
+                const username = currentUserEmail.split('@')[0];
+                userDisplay.innerText = username;
+
+                // Llenar información del perfil
+                document.getElementById('profile-username').innerText = username;
+                document.getElementById('profile-email').innerText = currentUserEmail;
+                document.getElementById('profile-id').innerText = session.user.id;
+                document.getElementById('profile-last-login').innerText = new Date(session.user.last_sign_in_at).toLocaleString();
+
                 authBox.style.display = 'none';
                 postBox.style.display = 'block';
                 navLoginBtn.innerText = '[Cuenta Activa]';
@@ -200,6 +250,7 @@
 
         function scrollToPostBox() {
             if (currentUserEmail) {
+                verTab('publicar');
                 document.getElementById('p-content').focus();
             } else {
                 document.getElementById('email').focus();
@@ -207,7 +258,9 @@
         }
 
         function focusLogin() {
-            if (!currentUserEmail) {
+            if (currentUserEmail) {
+                verTab('perfil');
+            } else {
                 document.getElementById('email').focus();
             }
         }
@@ -371,4 +424,3 @@
     </script>
 </body>
 </html>
-
