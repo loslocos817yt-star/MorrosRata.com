@@ -15,10 +15,17 @@
         <img src="assets/web/logo.png" alt="Logo" class="board-logo" onerror="this.style.display='none'">
     </div>
 
+    <!-- Barra de Navegación -->
+    <div class="navbar">
+        <a onclick="scrollToPostBox()">[Nuevo Tema]</a>
+        <a onclick="cargarPosts()">[Refrescar]</a>
+        <a id="nav-login-btn" onclick="focusLogin()">[Login]</a>
+    </div>
+
     <!-- Contenedor Principal -->
     <div class="main-container">
 
-        <!-- LOGIN / REGISTRO CON PATTITEXTEC ACCOUNTS -->
+        <!-- LOGIN / REGISTRO -->
         <div class="box-container" id="auth-box">
             <div class="account-brand-header">
                 <img src="assets/web/PattitexTECaccounts.png" alt="PattitexTEC Accounts" class="account-brand-logo" onerror="this.style.display='none'">
@@ -51,18 +58,13 @@
 
         <!-- PUBLICAR POST Y PERFIL DE USUARIO -->
         <div class="box-container" id="post-box" style="display: none;">
-            <!-- Logo de PattitexTEC Accounts en la sección de cuenta activa -->
-            <div class="account-brand-header">
-                <img src="assets/web/PattitexTECaccounts.png" alt="PattitexTEC Accounts" class="account-brand-logo" onerror="this.style.display='none'">
-            </div>
-
-            <!-- Pestañas de Navegación -->
+            <!-- Pestañas de Navegación con [+] -->
             <div style="margin-bottom: 10px; border-bottom: 1px solid #aaa; padding-bottom: 5px; text-align: center;">
-                <button class="btn-chan" onclick="verTab('publicar')">[Crear Publicación]</button>
+                <button class="btn-chan" onclick="verTab('publicar')">[+]</button>
                 <button class="btn-chan" onclick="verTab('perfil')">[Información del Perfil]</button>
             </div>
 
-            <!-- TAB 1: PUBLICAR -->
+            <!-- TAB 1: PUBLICAR (Sin logo) -->
             <div id="tab-publicar">
                 <form onsubmit="return false;">
                     <table>
@@ -94,8 +96,11 @@
                 </form>
             </div>
 
-            <!-- TAB 2: DETALLES DEL PERFIL -->
+            <!-- TAB 2: DETALLES DEL PERFIL (Con logo exclusivo aquí) -->
             <div id="tab-perfil" style="display: none;">
+                <div class="account-brand-header">
+                    <img src="assets/web/PattitexTECaccounts.png" alt="PattitexTEC Accounts" class="account-brand-logo" onerror="this.style.display='none'">
+                </div>
                 <div style="font-weight: bold; margin-bottom: 8px; color: #1b3d1b; border-bottom: 1px dashed #999; padding-bottom: 3px;">
                     📋 Detalles de la Cuenta
                 </div>
@@ -242,7 +247,6 @@
                 navLoginBtn.innerText = '[Login]';
                 document.getElementById('status-msg').innerText = '';
             }
-            cargarPosts();
         }
 
         function scrollToPostBox() {
@@ -417,7 +421,9 @@
             return text ? text.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t])) : '';
         }
 
+        // Inicialización al cargar la página
         checkSession();
+        cargarPosts();
     </script>
 </body>
 </html>
