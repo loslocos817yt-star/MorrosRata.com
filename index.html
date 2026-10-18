@@ -15,7 +15,7 @@
         <img src="assets/web/logo.png" alt="Logo" class="board-logo" onerror="this.style.display='none'">
     </div>
 
-    <!-- Barra de Navegación Limpia -->
+    <!-- Barra de Navegación -->
     <div class="navbar">
         <a id="nav-login-btn" onclick="focusLogin()">[Login]</a>
     </div>
@@ -54,15 +54,19 @@
             </form>
         </div>
 
-        <!-- PANEL DE USUARIO CON BOTÓN [+] ESTILO REDDIT -->
+        <!-- PANEL DE USUARIO CON BOTÓN [+] Y BOTÓN DE CIERRE -->
         <div class="box-container" id="post-box" style="display: none;">
-            <!-- Pestañas de Navegación con [+] -->
-            <div style="margin-bottom: 10px; border-bottom: 1px solid #aaa; padding-bottom: 5px; text-align: center;">
-                <button class="btn-chan" onclick="togglePublishBox()">[+]</button>
-                <button class="btn-chan" onclick="verTab('perfil')">[Información del Perfil]</button>
+            <div style="margin-bottom: 10px; border-bottom: 1px solid #aaa; padding-bottom: 5px; text-align: center; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <button class="btn-chan" onclick="togglePublishBox()">[+]</button>
+                    <button class="btn-chan" onclick="verTab('perfil')">[Información del Perfil]</button>
+                </div>
+                <div>
+                    <button class="btn-chan" onclick="cerrarCajaPost()" style="background: #2b2b2b; color: #fff;">[X]</button>
+                </div>
             </div>
 
-            <!-- TAB 1: FORMULARIO DE PUBLICACIÓN (Oculto por defecto, se abre con el [+]) -->
+            <!-- TAB 1: FORMULARIO DE PUBLICACIÓN -->
             <div id="tab-publicar" style="display: none;">
                 <form onsubmit="return false;">
                     <table>
@@ -153,6 +157,11 @@
             }
         }
 
+        function cerrarCajaPost() {
+            document.getElementById('tab-publicar').style.display = 'none';
+            document.getElementById('tab-perfil').style.display = 'none';
+        }
+
         function verTab(tabName) {
             document.getElementById('tab-publicar').style.display = tabName === 'publicar' ? 'block' : 'none';
             document.getElementById('tab-perfil').style.display = tabName === 'perfil' ? 'block' : 'none';
@@ -224,6 +233,7 @@
         async function handleSignOut() {
             await supabaseClient.auth.signOut();
             checkSession();
+            cerrarCajaPost();
         }
 
         async function checkSession() {
@@ -245,7 +255,7 @@
 
                 authBox.style.display = 'none';
                 postBox.style.display = 'block';
-                navLoginBtn.innerText = '[Cuenta Activa]';
+                navLoginBtn.innerText = `[${username}]`;
             } else {
                 currentUserEmail = '';
                 authBox.style.display = 'block';
@@ -257,7 +267,10 @@
 
         function focusLogin() {
             if (currentUserEmail) {
-                verTab('perfil');
+                let perfilDiv = document.getElementById('tab-perfil');
+                let pubDiv = document.getElementById('tab-publicar');
+                pubDiv.style.display = 'none';
+                perfilDiv.style.display = perfilDiv.style.display === 'none' ? 'block' : 'none';
             } else {
                 document.getElementById('email').focus();
             }
@@ -291,7 +304,7 @@
                 status.innerText = "¡Publicado!";
                 document.getElementById('p-content').value = '';
                 actualizarContador();
-                document.getElementById('tab-publicar').style.display = 'none';
+                cerrarCajaPost();
                 cargarPosts();
             }
         }
@@ -343,12 +356,12 @@
             box.style.display = box.style.display === 'none' ? 'block' : 'none';
         }
 
-        // CARGAR POSTS Y COMENTARIOS
+        // CARGAR POSTS Y COMENTARIOS DE FORMA ALEATORIA
         async function cargarPosts() {
             let feed = document.getElementById('feed');
             let currentUsername = currentUserEmail ? currentUserEmail.split('@')[0] : '';
 
-            let { data: posts, error } = await supabaseClient.from('jodidosPOST').select('*').order('created_at', { ascending: false });
+            let { data: posts, error } = await supabaseClient.from('jodidosPOST').select('*');
 
             if (error) {
                 feed.innerHTML = `<div style="color:red; text-align:center;">Error cargando posts: ${error.message}</div>`;
@@ -358,6 +371,12 @@
             if (!posts || posts.length === 0) {
                 feed.innerHTML = `<div style="text-align:center; font-size:11px;">No hay publicaciones todavía.</div>`;
                 return;
+            }
+
+            // Desordenar posts de manera aleatoria (Fisher-Yates shuffle)
+            for (let i = posts.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [posts[i], posts[j]] = [posts[j], posts[i]];
             }
 
             let { data: comentarios } = await supabaseClient.from('JodeteComentarios').select('*').order('created_at', { ascending: true });
