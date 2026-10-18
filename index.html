@@ -10,7 +10,7 @@
 </head>
 <body>
 
-    <!-- Encabezado con Logo -->
+    <!-- Encabezado con Logo Principal -->
     <div class="board-header">
         <img src="assets/web/logo.png" alt="Logo" class="board-logo" onerror="this.style.display='none'">
     </div>
@@ -28,7 +28,7 @@
         <!-- LOGIN / REGISTRO CON PATTITEXTEC ACCOUNTS -->
         <div class="box-container" id="auth-box">
             <div class="account-brand-header">
-                <img src="assets/web/PattitexTECaccounts.png" alt="PattitexTEC Accounts" class="account-brand-logo" onerror="this.src='assets/web/logo.png'">
+                <img src="assets/web/PattitexTECaccounts.png" alt="PattitexTEC Accounts" class="account-brand-logo" onerror="this.style.display='none'">
             </div>
             <form onsubmit="return false;">
                 <table>
@@ -56,15 +56,20 @@
             </form>
         </div>
 
-        <!-- PUBLICAR POST Y PANEL DE PERFIL DE USUARIO -->
+        <!-- PUBLICAR POST Y PERFIL DE USUARIO -->
         <div class="box-container" id="post-box" style="display: none;">
-            <!-- Pestañas de Navegación del Usuario -->
-            <div style="margin-bottom: 10px; border-bottom: 1px solid #aaa; padding-bottom: 5px;">
+            <!-- Logo de PattitexTEC Accounts en la sección de cuenta activa -->
+            <div class="account-brand-header">
+                <img src="assets/web/PattitexTECaccounts.png" alt="PattitexTEC Accounts" class="account-brand-logo" onerror="this.style.display='none'">
+            </div>
+
+            <!-- Pestañas de Navegación -->
+            <div style="margin-bottom: 10px; border-bottom: 1px solid #aaa; padding-bottom: 5px; text-align: center;">
                 <button class="btn-chan" onclick="verTab('publicar')">[Crear Publicación]</button>
                 <button class="btn-chan" onclick="verTab('perfil')">[Información del Perfil]</button>
             </div>
 
-            <!-- TAB 1: FORMULARIO DE PUBLICACIÓN -->
+            <!-- TAB 1: PUBLICAR -->
             <div id="tab-publicar">
                 <form onsubmit="return false;">
                     <table>
@@ -96,10 +101,10 @@
                 </form>
             </div>
 
-            <!-- TAB 2: DETALLES E INFORMACIÓN DEL PERFIL -->
+            <!-- TAB 2: DETALLES DEL PERFIL -->
             <div id="tab-perfil" style="display: none;">
                 <div style="font-weight: bold; margin-bottom: 8px; color: #1b3d1b; border-bottom: 1px dashed #999; padding-bottom: 3px;">
-                    📋 Detalles de PattitexTEC Accounts
+                    📋 Detalles de la Cuenta
                 </div>
                 <table style="width: 100%; font-size: 11px; line-height: 1.6;">
                     <tr>
@@ -229,7 +234,6 @@
                 const username = currentUserEmail.split('@')[0];
                 userDisplay.innerText = username;
 
-                // Llenar información del perfil
                 document.getElementById('profile-username').innerText = username;
                 document.getElementById('profile-email').innerText = currentUserEmail;
                 document.getElementById('profile-id').innerText = session.user.id;
@@ -424,3 +428,4 @@
     </script>
 </body>
 </html>
+
