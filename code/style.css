@@ -172,4 +172,7 @@ input[type="text"], textarea {
     user-select: none;
     -webkit-user-select: none;
 }
-
+.greentext {
+    color: #789922;
+    font-weight: bold;
+}

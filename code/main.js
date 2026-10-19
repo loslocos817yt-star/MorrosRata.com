@@ -3,6 +3,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUserEmail = '';
+let allPostsData = [];
+let allCommentsData = [];
 
 function togglePublishBox() {
     let pubDiv = document.getElementById('tab-publicar');
@@ -48,6 +50,18 @@ function actualizarContador() {
     let counter = document.getElementById('char-counter');
     let restantes = 500 - textarea.value.length;
     counter.innerText = `${restantes} / 500`;
+    localStorage.setItem('norros_draft', textarea.value);
+}
+
+function cargarBorrador() {
+    let saved = localStorage.getItem('norros_draft');
+    if (saved) {
+        let textarea = document.getElementById('p-content');
+        if (textarea) {
+            textarea.value = saved;
+            actualizarContador();
+        }
+    }
 }
 
 async function handleSignUp() {
@@ -180,6 +194,7 @@ async function enviarPost() {
         status.style.color = 'green';
         status.innerText = "¡Publicado!";
         document.getElementById('p-content').value = '';
+        localStorage.removeItem('norros_draft');
         actualizarContador();
         cerrarCajaPost();
         cargarPosts();
@@ -233,9 +248,33 @@ function toggleReplyBox(postId) {
     if(box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
 }
 
+function formatMessage(text) {
+    let escaped = escapeHtml(text);
+    let lines = escaped.split('\n');
+    let formattedLines = lines.map(line => {
+        if (line.trim().startsWith('&gt;')) {
+            return `<span class="greentext">${line}</span>`;
+        }
+        return line;
+    });
+    return formattedLines.join('<br>');
+}
+
+function filtrarPosts() {
+    let query = document.getElementById('search-input').value.toLowerCase().trim();
+    if (!query) {
+        renderFeed(allPostsData, allCommentsData);
+        return;
+    }
+    let filtrados = allPostsData.filter(p => 
+        p.username.toLowerCase().includes(query) || 
+        p.content.toLowerCase().includes(query)
+    );
+    renderFeed(filtrados, allCommentsData);
+}
+
 async function cargarPosts() {
     let feed = document.getElementById('feed');
-    let currentUsername = currentUserEmail ? currentUserEmail.split('@')[0] : '';
 
     let { data: posts, error } = await supabaseClient.from('jodidosPOST').select('*');
 
@@ -256,6 +295,26 @@ async function cargarPosts() {
 
     let { data: comentarios } = await supabaseClient.from('JodeteComentarios').select('*').order('created_at', { ascending: true });
 
+    allPostsData = posts;
+    allCommentsData = comentarios || [];
+
+    let searchVal = document.getElementById('search-input') ? document.getElementById('search-input').value : '';
+    if (searchVal.trim()) {
+        filtrarPosts();
+    } else {
+        renderFeed(allPostsData, allCommentsData);
+    }
+}
+
+function renderFeed(posts, comentarios) {
+    let feed = document.getElementById('feed');
+    let currentUsername = currentUserEmail ? currentUserEmail.split('@')[0] : '';
+
+    if (!posts || posts.length === 0) {
+        feed.innerHTML = `<div style="text-align:center; font-size:11px;">No se encontraron resultados.</div>`;
+        return;
+    }
+
     feed.innerHTML = '';
     posts.forEach(p => {
         let fecha = new Date(p.created_at).toLocaleString();
@@ -272,7 +331,7 @@ async function cargarPosts() {
                     <span class="postername">${escapeHtml(c.username)}</span>
                     <span style="color:#666; font-size:10px;">${cFecha}</span>
                     ${deleteCommentBtn}
-                    <div style="margin-top:2px;">${escapeHtml(c.content)}</div>
+                    <div style="margin-top:2px;">${formatMessage(c.content)}</div>
                 </div>
             `;
         });
@@ -294,7 +353,7 @@ async function cargarPosts() {
                     <span>${fecha}</span>
                     <span style="float:right;">No. ${p.id}</span>
                 </div>
-                <div class="message">${escapeHtml(p.content)}</div>
+                <div class="message">${formatMessage(p.content)}</div>
 
                 <span class="reply-btn" onclick="toggleReplyBox(${p.id})">[Responder]</span> (${misComentarios.length} comentarios)
                 ${deletePostBtn}
@@ -314,4 +373,9 @@ function escapeHtml(text) {
 }
 
 checkSession();
+cargarBorrador();
 cargarPosts();
+
+setInterval(() => {
+    cargarPosts();
+}, 15000);
