@@ -5,6 +5,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUserEmail = '';
 let allPostsData = [];
 let allCommentsData = [];
+let currentSubratitaFiltro = 'todos';
 
 function togglePublishBox() {
     let pubDiv = document.getElementById('tab-publicar');
@@ -16,7 +17,7 @@ function togglePublishBox() {
     if (pubDiv.style.display === 'none' || pubDiv.style.display === '') {
         pubDiv.style.display = 'block';
         btnCerrar.style.display = 'inline-block';
-        document.getElementById('p-content').focus();
+        document.getElementById('p-subratita').focus();
     } else {
         pubDiv.style.display = 'none';
         btnCerrar.style.display = 'none';
@@ -137,14 +138,14 @@ async function checkSession() {
         const username = currentUserEmail.split('@')[0];
         userDisplay.innerText = username;
 
-        document.getElementById('profile-username').innerText = username;
+        document.getElementById('profile-username').innerText = `ur/${username}`;
         document.getElementById('profile-email').innerText = currentUserEmail;
         document.getElementById('profile-id').innerText = session.user.id;
         document.getElementById('profile-last-login').innerText = new Date(session.user.last_sign_in_at).toLocaleString();
 
         authBox.style.display = 'none';
         postBox.style.display = 'block';
-        navLoginBtn.innerText = `[${username}]`;
+        navLoginBtn.innerText = `[ur/${username}]`;
     } else {
         currentUserEmail = '';
         authBox.style.display = 'block';
@@ -169,12 +170,21 @@ function focusLogin() {
 }
 
 async function enviarPost() {
+    let subForumSelect = document.getElementById('p-subratita').value;
     let content = document.getElementById('p-content').value.trim();
     let status = document.getElementById('post-status');
+
+    if (!subForumSelect) {
+        status.style.color = 'red';
+        status.innerText = "Selecciona una SubRatita (SR) de la lista.";
+        document.getElementById('p-subratita').focus();
+        return;
+    }
 
     if (!content) {
         status.style.color = 'red';
         status.innerText = "Escribe un mensaje.";
+        document.getElementById('p-content').focus();
         return;
     }
 
@@ -184,7 +194,7 @@ async function enviarPost() {
     let authorName = currentUserEmail ? currentUserEmail.split('@')[0] : 'Anónimo';
 
     let { error } = await supabaseClient.from('jodidosPOST').insert([
-        { username: authorName, content: content }
+        { username: authorName, content: content, SubForum: subForumSelect }
     ]);
 
     if (error) {
@@ -194,6 +204,7 @@ async function enviarPost() {
         status.style.color = 'green';
         status.innerText = "¡Publicado!";
         document.getElementById('p-content').value = '';
+        document.getElementById('p-subratita').value = '';
         localStorage.removeItem('norros_draft');
         actualizarContador();
         cerrarCajaPost();
@@ -260,17 +271,14 @@ function formatMessage(text) {
     return formattedLines.join('<br>');
 }
 
+function filtrarPorSubratita(sub) {
+    currentSubratitaFiltro = sub;
+    renderFeed(allPostsData, allCommentsData);
+    actualizarNavSubratitas();
+}
+
 function filtrarPosts() {
-    let query = document.getElementById('search-input').value.toLowerCase().trim();
-    if (!query) {
-        renderFeed(allPostsData, allCommentsData);
-        return;
-    }
-    let filtrados = allPostsData.filter(p => 
-        p.username.toLowerCase().includes(query) || 
-        p.content.toLowerCase().includes(query)
-    );
-    renderFeed(filtrados, allCommentsData);
+    renderFeed(allPostsData, allCommentsData);
 }
 
 async function cargarPosts() {
@@ -284,7 +292,7 @@ async function cargarPosts() {
     }
 
     if (!posts || posts.length === 0) {
-        feed.innerHTML = `<div style="text-align:center; font-size:11px;">No hay publicaciones todavía.</div>`;
+        feed.innerHTML = `<div style="text-align:center; font-size:11px;">No hay publicaciones todavía. ¡Sé el primero en publicar!</div>`;
         return;
     }
 
@@ -298,26 +306,47 @@ async function cargarPosts() {
     allPostsData = posts;
     allCommentsData = comentarios || [];
 
-    let searchVal = document.getElementById('search-input') ? document.getElementById('search-input').value : '';
-    if (searchVal.trim()) {
-        filtrarPosts();
-    } else {
-        renderFeed(allPostsData, allCommentsData);
-    }
+    actualizarNavSubratitas();
+    renderFeed(allPostsData, allCommentsData);
+}
+
+function actualizarNavSubratitas() {
+    let navDiv = document.getElementById('subratitas-nav');
+    if (!navDiv) return;
+
+    let subsUnicas = [...new Set(allPostsData.map(p => p.SubForum || 'general'))];
+    
+    let html = `<button class="btn-chan ${currentSubratitaFiltro === 'todos' ? 'active-sub' : ''}" onclick="filtrarPorSubratita('todos')">[Todos]</button>`;
+    
+    subsUnicas.forEach(sub => {
+        let activeClass = currentSubratitaFiltro === sub ? 'active-sub' : '';
+        html += `<button class="btn-chan ${activeClass}" onclick="filtrarPorSubratita('${sub}')">[sr/${sub}]</button>`;
+    });
+
+    navDiv.innerHTML = html;
 }
 
 function renderFeed(posts, comentarios) {
     let feed = document.getElementById('feed');
     let currentUsername = currentUserEmail ? currentUserEmail.split('@')[0] : '';
+    let searchQuery = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase().trim() : '';
 
-    if (!posts || posts.length === 0) {
-        feed.innerHTML = `<div style="text-align:center; font-size:11px;">No se encontraron resultados.</div>`;
+    let filtrados = posts.filter(p => {
+        let pSub = p.SubForum || 'general';
+        let subMatches = currentSubratitaFiltro === 'todos' || pSub === currentSubratitaFiltro;
+        let searchMatches = !searchQuery || p.username.toLowerCase().includes(searchQuery) || p.content.toLowerCase().includes(searchQuery) || pSub.toLowerCase().includes(searchQuery);
+        return subMatches && searchMatches;
+    });
+
+    if (!filtrados || filtrados.length === 0) {
+        feed.innerHTML = `<div style="text-align:center; font-size:11px;">No se encontraron publicaciones en este SR.</div>`;
         return;
     }
 
     feed.innerHTML = '';
-    posts.forEach(p => {
+    filtrados.forEach(p => {
         let fecha = new Date(p.created_at).toLocaleString();
+        let subName = p.SubForum || 'general';
         let misComentarios = comentarios ? comentarios.filter(c => c.post_ID === p.id) : [];
         let commentsHTML = '';
 
@@ -328,7 +357,7 @@ function renderFeed(posts, comentarios) {
 
             commentsHTML += `
                 <div class="comment-card">
-                    <span class="postername">${escapeHtml(c.username)}</span>
+                    <span class="postername">ur/${escapeHtml(c.username)}</span>
                     <span style="color:#666; font-size:10px;">${cFecha}</span>
                     ${deleteCommentBtn}
                     <div style="margin-top:2px;">${formatMessage(c.content)}</div>
@@ -349,7 +378,8 @@ function renderFeed(posts, comentarios) {
         feed.innerHTML += `
             <div class="post-card">
                 <div class="post-header">
-                    <span class="postername">${escapeHtml(p.username)}</span>
+                    <span class="postername">ur/${escapeHtml(p.username)}</span>
+                    <span style="color: #004400; font-weight: bold; cursor: pointer;" onclick="filtrarPorSubratita('${subName}')">sr/${subName}</span>
                     <span>${fecha}</span>
                     <span style="float:right;">No. ${p.id}</span>
                 </div>

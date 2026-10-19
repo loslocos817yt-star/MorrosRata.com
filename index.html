@@ -58,7 +58,7 @@
         <div class="box-container" id="post-box" style="display: none;">
             <div style="margin-bottom: 10px; border-bottom: 1px solid #aaa; padding-bottom: 5px; text-align: center; display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <button class="btn-chan" onclick="togglePublishBox()">[+]</button>
+                    <button class="btn-chan" onclick="togglePublishBox()">[+] Crear Post</button>
                     <button class="btn-chan" onclick="verTab('perfil')">[Información del Perfil]</button>
                 </div>
                 <div>
@@ -76,7 +76,19 @@
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="2">
+                            <td style="width: 110px; font-weight: bold;">SubRatita (SR):</td>
+                            <td>
+                                <select id="p-subratita" style="font-weight: bold; color: #006600; font-family: monospace; font-size: 11px; padding: 2px;" required>
+                                    <option value="" disabled selected>-- Selecciona un SubForum --</option>
+                                    <option value="general">sr/general</option>
+                                    <option value="programacion">sr/programacion</option>
+                                    <option value="dudas">sr/dudas</option>
+                                    <option value="shitpost">sr/shitpost</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="padding-top: 5px;">
                                 <textarea id="p-content" rows="3" maxlength="500" placeholder="Escribe tu publicación (máx. 500 caracteres)..." oninput="actualizarContador()" required></textarea>
                                 <div class="char-counter" id="char-counter">500 / 500</div>
                             </td>
@@ -102,11 +114,11 @@
                     <img src="assets/web/PattitexTECaccounts.png" alt="PattitexTEC Accounts" class="account-brand-logo" onerror="this.style.display='none'">
                 </div>
                 <div style="font-weight: bold; margin-bottom: 8px; color: #1b3d1b; border-bottom: 1px dashed #999; padding-bottom: 3px;">
-                    📋 Detalles de la Cuenta
+                    📋 Detalles de la Cuenta (ur/)
                 </div>
                 <table style="width: 100%; font-size: 11px; line-height: 1.6;">
                     <tr>
-                        <td style="width: 110px; font-weight: bold;">Usuario (Alias):</td>
+                        <td style="width: 110px; font-weight: bold;">Usuario (ur/):</td>
                         <td id="profile-username" class="postername">-</td>
                     </tr>
                     <tr>
@@ -128,9 +140,14 @@
             </div>
         </div>
 
-        <!-- BARRA DE BÚSQUEDA RÁPIDA -->
-        <div style="margin: 10px 0; text-align: right;">
-            <input type="text" id="search-input" placeholder="🔍 Buscar posts o usuarios..." oninput="filtrarPosts()" style="width: 220px; font-size: 11px; padding: 3px;">
+        <!-- BARRA DE NAVEGACIÓN DE SUBRATITAS Y BÚSQUEDA -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px; margin: 10px 0;">
+            <div id="subratitas-nav" style="display: flex; gap: 4px; flex-wrap: wrap;">
+                <!-- Se llena dinámicamente con JS -->
+            </div>
+            <div>
+                <input type="text" id="search-input" placeholder="🔍 Buscar..." oninput="filtrarPosts()" style="width: 160px; font-size: 11px; padding: 3px;">
+            </div>
         </div>
 
         <hr style="border: 0; border-top: 1px solid #aaa; margin: 10px 0;">
