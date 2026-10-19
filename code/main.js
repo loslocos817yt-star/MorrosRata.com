@@ -6,6 +6,30 @@ let currentUserEmail = '';
 let allPostsData = [];
 let allCommentsData = [];
 let currentSubratitaFiltro = 'todos';
+let knownCommentsCount = 0;
+
+function solicitarPermisoNotificaciones() {
+    if ("Notification" in window) {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                alert("¡Notificaciones activadas correctamente! Te avisaremos cuando respondan a tus publicaciones.");
+            } else if (permission === "denied") {
+                alert("Bloqueaste las notificaciones. Puedes activarlas en la configuración de tu navegador.");
+            }
+        });
+    } else {
+        alert("Tu navegador no soporta notificaciones del celular.");
+    }
+}
+
+function enviarNotificacionCelular(titulo, mensaje) {
+    if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(titulo, {
+            body: mensaje,
+            icon: 'assets/web/favicon.png'
+        });
+    }
+}
 
 function togglePublishBox() {
     let pubDiv = document.getElementById('tab-publicar');
@@ -146,6 +170,10 @@ async function checkSession() {
         authBox.style.display = 'none';
         postBox.style.display = 'block';
         navLoginBtn.innerText = `[ur/${username}]`;
+
+        if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission();
+        }
     } else {
         currentUserEmail = '';
         authBox.style.display = 'block';
@@ -303,8 +331,26 @@ async function cargarPosts() {
 
     let { data: comentarios } = await supabaseClient.from('JodeteComentarios').select('*').order('created_at', { ascending: true });
 
+    let nuevosComentarios = comentarios || [];
+
+    if (currentUserEmail && knownCommentsCount > 0 && nuevosComentarios.length > knownCommentsCount) {
+        let currentUsername = currentUserEmail.split('@')[0];
+        let misPostIds = posts.filter(p => p.username === currentUsername).map(p => p.id);
+        
+        let ultimosComentarios = nuevosComentarios.slice(knownCommentsCount);
+        ultimosComentarios.forEach(c => {
+            if (misPostIds.includes(c.post_ID) && c.username !== currentUsername) {
+                enviarNotificacionCelular(
+                    `¡Nueva respuesta en NiñosRata.com!`,
+                    `ur/${c.username} te respondió: "${c.content.substring(0, 40)}..."`
+                );
+            }
+        });
+    }
+
+    knownCommentsCount = nuevosComentarios.length;
     allPostsData = posts;
-    allCommentsData = comentarios || [];
+    allCommentsData = nuevosComentarios;
 
     actualizarNavSubratitas();
     renderFeed(allPostsData, allCommentsData);
