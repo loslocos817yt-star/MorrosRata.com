@@ -1,17 +1,26 @@
-body {
-    background-color: #121812;
-    background-image: radial-gradient(#1f2e1f 1px, transparent 1px), radial-gradient(#1f2e1f 1px, #121812 1px);
-    background-size: 20px 20px;
-    color: #111;
-    font-family: "MS PGothic", monospace;
+html, body {
+    min-height: 100vh;
     margin: 0;
     padding: 0;
 }
+
+body {
+    background-color: #121812;
+    background-image: url("../assets/web/imagen_Fondo.png");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    background-attachment: fixed;
+    color: #111;
+    font-family: "MS PGothic", monospace;
+}
+
 .board-header {
     text-align: center;
     padding: 15px 0 5px 0;
-    background-color: #0b0f0b;
+    background-color: rgba(11, 15, 11, 0.85); /* Un toque semi-transparente para ver el fondo */
 }
+
 .board-logo {
     max-height: 140px;
     max-width: 90%;
@@ -22,8 +31,9 @@ body {
     -moz-user-select: none;
     -ms-user-select: none;
 }
+
 .navbar {
-    background-color: #161c16;
+    background-color: rgba(22, 28, 22, 0.9);
     border-top: 1px solid #334d33;
     border-bottom: 2px solid #2e5c2e;
     text-align: center;
@@ -34,6 +44,7 @@ body {
     -moz-user-select: none;
     -ms-user-select: none;
 }
+
 .navbar a {
     color: #00ff66;
     text-decoration: none;
@@ -42,16 +53,19 @@ body {
     font-weight: bold;
     cursor: pointer;
 }
+
 .navbar a:hover {
     text-decoration: underline;
 }
+
 .main-container {
     max-width: 800px;
     margin: 0 auto 20px auto;
-    background-color: #cccccc;
+    background-color: rgba(204, 204, 204, 0.95); /* Estilo retro intacto sobre el fondo */
     border: 2px solid #3b8a3b;
     padding: 10px;
 }
+
 .box-container {
     background-color: #dcdcdc;
     border: 1px solid #888;
@@ -59,9 +73,11 @@ body {
     margin-bottom: 15px;
     font-size: 11px;
 }
+
 .box-container table {
     width: 100%;
 }
+
 .account-brand-header {
     text-align: center;
     margin-bottom: 8px;
@@ -70,11 +86,13 @@ body {
     user-select: none;
     -webkit-user-select: none;
 }
+
 .account-brand-logo {
     max-height: 35px;
     width: auto;
     display: inline-block;
 }
+
 input[type="text"], textarea {
     width: 96%;
     background-color: #fff;
@@ -83,12 +101,14 @@ input[type="text"], textarea {
     font-family: monospace;
     padding: 3px;
 }
+
 .post-card {
     background-color: #e4e4e4;
     border: 1px solid #3b8a3b;
     padding: 8px;
     margin-bottom: 10px;
 }
+
 .post-header {
     font-size: 11px;
     background-color: #c4c4c4;
@@ -96,10 +116,12 @@ input[type="text"], textarea {
     margin-bottom: 6px;
     border-bottom: 1px solid #aaa;
 }
+
 .postername {
     color: #006600;
     font-weight: bold;
 }
+
 .message {
     font-size: 12px;
     line-height: 1.4;
@@ -108,12 +130,14 @@ input[type="text"], textarea {
     white-space: pre-wrap;
     margin-bottom: 8px;
 }
+
 .comments-section {
     margin-left: 15px;
     border-left: 2px solid #3b8a3b;
     padding-left: 8px;
     margin-top: 8px;
 }
+
 .comment-card {
     background-color: #d6d6d6;
     border: 1px solid #bcbcbc;
@@ -121,6 +145,7 @@ input[type="text"], textarea {
     margin-bottom: 4px;
     font-size: 11px;
 }
+
 .reply-btn, .delete-btn {
     font-size: 10px;
     cursor: pointer;
@@ -130,13 +155,16 @@ input[type="text"], textarea {
     -moz-user-select: none;
     -ms-user-select: none;
 }
+
 .reply-btn {
     color: #0000ee;
 }
+
 .delete-btn {
     color: #cc0000;
     margin-left: 8px;
 }
+
 .btn-chan {
     background-color: #dcdcdc;
     border: 2px outset #aaa;
@@ -150,28 +178,34 @@ input[type="text"], textarea {
     -moz-user-select: none;
     -ms-user-select: none;
 }
+
 .btn-chan:active {
     border-style: inset;
 }
+
 #status-msg, #post-status {
     font-weight: bold;
     margin-top: 5px;
     font-size: 11px;
 }
+
 .char-counter {
     font-size: 10px;
     color: #555;
     text-align: right;
     margin-top: 2px;
 }
+
 .footer {
     text-align: center;
     font-size: 10px;
-    color: #888;
+    color: #ccc;
     margin-bottom: 20px;
     user-select: none;
     -webkit-user-select: none;
+    text-shadow: 1px 1px 2px #000;
 }
+
 .greentext {
     color: #789922;
     font-weight: bold;
