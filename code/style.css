@@ -107,14 +107,13 @@ input[type="text"], textarea {
     border: 1px solid #3b8a3b;
     padding: 8px;
     margin-bottom: 10px;
-    transition: all 0.5s ease;
+    transition: background-color 0.4s ease, border 0.4s ease;
 }
 
-/* Animación y marco especial para posts compartidos */
+/* Resaltado estilo Retro / Marcador clásico (Sin neón ni luces) */
 .post-card.highlight-post {
-    border: 2px solid #00ff66 !important;
-    background-color: #d2ffd2 !important;
-    box-shadow: 0 0 12px #00ff66;
+    border: 2px dashed #006600 !important;
+    background-color: #f2f5c8 !important; /* Amarillo retro / verde seco */
 }
 
 .post-header {
