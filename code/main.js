@@ -8,6 +8,17 @@ let allCommentsData = [];
 let currentSubratitaFiltro = 'todos';
 let knownCommentsCount = 0;
 
+// Lista de usuarios considerados creadores/admins
+const ADMIN_USERS = ['doryansanchez72'];
+
+function obtenerBadgeUser(username) {
+    let cleanUser = escapeHtml(username);
+    if (ADMIN_USERS.includes(username)) {
+        return `<span class="postername">ur/${cleanUser}</span> <img src="assets/web/admin.log.png" alt="Admin" style="height: 18px; vertical-align: middle; margin: 0 4px;" title="Creador / Admin">`;
+    }
+    return `<span class="postername">ur/${cleanUser}</span>`;
+}
+
 function solicitarPermisoNotificaciones() {
     if ("Notification" in window) {
         Notification.requestPermission().then(permission => {
@@ -160,9 +171,10 @@ async function checkSession() {
     if (session) {
         currentUserEmail = session.user.email;
         const username = currentUserEmail.split('@')[0];
-        userDisplay.innerText = username;
+        
+        userDisplay.innerHTML = obtenerBadgeUser(username);
 
-        document.getElementById('profile-username').innerText = `ur/${username}`;
+        document.getElementById('profile-username').innerHTML = obtenerBadgeUser(username);
         document.getElementById('profile-email').innerText = currentUserEmail;
         document.getElementById('profile-id').innerText = session.user.id;
         document.getElementById('profile-last-login').innerText = new Date(session.user.last_sign_in_at).toLocaleString();
@@ -403,7 +415,7 @@ function renderFeed(posts, comentarios) {
 
             commentsHTML += `
                 <div class="comment-card">
-                    <span class="postername">ur/${escapeHtml(c.username)}</span>
+                    ${obtenerBadgeUser(c.username)}
                     <span style="color:#666; font-size:10px;">${cFecha}</span>
                     ${deleteCommentBtn}
                     <div style="margin-top:2px;">${formatMessage(c.content)}</div>
@@ -424,7 +436,7 @@ function renderFeed(posts, comentarios) {
         feed.innerHTML += `
             <div class="post-card">
                 <div class="post-header">
-                    <span class="postername">ur/${escapeHtml(p.username)}</span>
+                    ${obtenerBadgeUser(p.username)}
                     <span style="color: #004400; font-weight: bold; cursor: pointer;" onclick="filtrarPorSubratita('${subName}')">sr/${subName}</span>
                     <span>${fecha}</span>
                     <span style="float:right;">No. ${p.id}</span>
