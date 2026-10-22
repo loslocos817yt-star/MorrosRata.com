@@ -18,7 +18,7 @@ body {
 .board-header {
     text-align: center;
     padding: 15px 0 5px 0;
-    background-color: rgba(11, 15, 11, 0.85); /* Un toque semi-transparente para ver el fondo */
+    background-color: rgba(11, 15, 11, 0.85);
 }
 
 .board-logo {
@@ -61,7 +61,7 @@ body {
 .main-container {
     max-width: 800px;
     margin: 0 auto 20px auto;
-    background-color: rgba(204, 204, 204, 0.95); /* Estilo retro intacto sobre el fondo */
+    background-color: rgba(204, 204, 204, 0.95);
     border: 2px solid #3b8a3b;
     padding: 10px;
 }
@@ -107,6 +107,14 @@ input[type="text"], textarea {
     border: 1px solid #3b8a3b;
     padding: 8px;
     margin-bottom: 10px;
+    transition: all 0.5s ease;
+}
+
+/* Animación y marco especial para posts compartidos */
+.post-card.highlight-post {
+    border: 2px solid #00ff66 !important;
+    background-color: #d2ffd2 !important;
+    box-shadow: 0 0 12px #00ff66;
 }
 
 .post-header {

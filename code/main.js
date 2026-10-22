@@ -311,10 +311,56 @@ function formatMessage(text) {
     return formattedLines.join('<br>');
 }
 
-function filtrarPorSubratita(sub) {
+function copiarLinkPost(postId) {
+    let urlBase = window.location.origin + window.location.pathname;
+    let link = `${urlBase}#post-${postId}`;
+    
+    navigator.clipboard.writeText(link).then(() => {
+        alert(`¡Enlace copiado al portapapeles!\n${link}`);
+    }).catch(err => {
+        alert("Error al copiar enlace.");
+    });
+}
+
+function filtrarPorSubratita(sub, actualizarHash = true) {
     currentSubratitaFiltro = sub;
+    
+    if (actualizarHash) {
+        if (sub === 'todos') {
+            history.pushState(null, null, ' ');
+        } else {
+            window.location.hash = `sr/${sub}`;
+        }
+    }
+
     renderFeed(allPostsData, allCommentsData);
     actualizarNavSubratitas();
+}
+
+function leerSubratitaDesdeURL() {
+    let hash = window.location.hash.replace('#', '');
+    if (hash.startsWith('sr/')) {
+        let sub = hash.replace('sr/', '');
+        currentSubratitaFiltro = sub;
+    } else if (hash.startsWith('post-')) {
+        currentSubratitaFiltro = 'todos';
+    }
+}
+
+function resaltarPostCompartido() {
+    let hash = window.location.hash;
+    if (hash.startsWith('#post-')) {
+        let el = document.querySelector(hash);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('highlight-post');
+            
+            // Remueve la animación de resaltado después de 3.5 segundos
+            setTimeout(() => {
+                el.classList.remove('highlight-post');
+            }, 3500);
+        }
+    }
 }
 
 function filtrarPosts() {
@@ -364,8 +410,10 @@ async function cargarPosts() {
     allPostsData = posts;
     allCommentsData = nuevosComentarios;
 
+    leerSubratitaDesdeURL();
     actualizarNavSubratitas();
     renderFeed(allPostsData, allCommentsData);
+    resaltarPostCompartido();
 }
 
 function actualizarNavSubratitas() {
@@ -434,7 +482,7 @@ function renderFeed(posts, comentarios) {
         let deletePostBtn = esMiPost ? `<span class="delete-btn" onclick="borrarPost(${p.id})">[Borrar]</span>` : '';
 
         feed.innerHTML += `
-            <div class="post-card">
+            <div class="post-card" id="post-${p.id}">
                 <div class="post-header">
                     ${obtenerBadgeUser(p.username)}
                     <span style="color: #004400; font-weight: bold; cursor: pointer;" onclick="filtrarPorSubratita('${subName}')">sr/${subName}</span>
@@ -444,6 +492,7 @@ function renderFeed(posts, comentarios) {
                 <div class="message">${formatMessage(p.content)}</div>
 
                 <span class="reply-btn" onclick="toggleReplyBox(${p.id})">[Responder]</span> (${misComentarios.length} comentarios)
+                <span class="reply-btn" style="color:#006600; margin-left:6px;" onclick="copiarLinkPost(${p.id})">[Compartir]</span>
                 ${deletePostBtn}
 
                 ${replyFormHTML}
@@ -459,6 +508,13 @@ function renderFeed(posts, comentarios) {
 function escapeHtml(text) {
     return text ? text.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t])) : '';
 }
+
+window.addEventListener('hashchange', () => {
+    leerSubratitaDesdeURL();
+    renderFeed(allPostsData, allCommentsData);
+    actualizarNavSubratitas();
+    resaltarPostCompartido();
+});
 
 checkSession();
 cargarBorrador();
