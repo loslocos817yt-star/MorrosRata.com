@@ -1,3 +1,8 @@
+// ============================================================
+// main.js — Archivo único unificado con autenticación, feed,
+// Google reCAPTCHA v2 y reglas del foro integradas.
+// ============================================================
+
 const SUPABASE_URL = 'https://rioyrsemrzcznwhjwanj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpb3lyc2Vtcnpjem53aGp3YW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNjUwNDAsImV4cCI6MjEwNzg0MTA0MH0.lkjOmIPdqWCWm6h42RkJNjnjFciFQxATcsTx8knPUeg';
 
@@ -7,10 +12,11 @@ let allPostsData = [];
 let allCommentsData = [];
 let currentSubratitaFiltro = 'todos';
 let knownCommentsCount = 0;
-let captchaResultadoCorrecto = 0;
 
 // Lista de usuarios considerados creadores/admins
 const ADMIN_USERS = ['doryansanchez72'];
+
+// ---------- Utilidades de escape HTML ----------
 
 function escapeHtml(text) {
     return text ? text.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t])) : '';
@@ -23,6 +29,8 @@ function obtenerBadgeUser(username) {
     }
     return `<span class="postername">ur/${cleanUser}</span>`;
 }
+
+// ---------- Notificaciones ----------
 
 function solicitarPermisoNotificaciones() {
     if ("Notification" in window) {
@@ -47,44 +55,34 @@ function enviarNotificacionCelular(titulo, mensaje) {
     }
 }
 
-// CAPTCHA Matemático Simple
-function generarCaptcha() {
-    let num1 = Math.floor(Math.random() * 10) + 1;
-    let num2 = Math.floor(Math.random() * 10) + 1;
-    captchaResultadoCorrecto = num1 + num2;
-    
-    let el = document.getElementById('captcha-pregunta');
-    if (el) {
-        el.innerText = `${num1} + ${num2} =`;
-    }
-    let inputResp = document.getElementById('captcha-respuesta');
-    if (inputResp) {
-        inputResp.value = '';
-    }
-}
+// ---------- UI: Cajas de publicar / perfil / reglas ----------
 
 function togglePublishBox() {
     let pubDiv = document.getElementById('tab-publicar');
     let perfilDiv = document.getElementById('tab-perfil');
     let btnCerrar = document.getElementById('btn-cerrar-post');
     
-    perfilDiv.style.display = 'none';
+    if (perfilDiv) perfilDiv.style.display = 'none';
     
     if (pubDiv.style.display === 'none' || pubDiv.style.display === '') {
         pubDiv.style.display = 'block';
-        btnCerrar.style.display = 'inline-block';
-        generarCaptcha();
-        document.getElementById('p-subratita').focus();
+        if (btnCerrar) btnCerrar.style.display = 'inline-block';
+        let subratitaInput = document.getElementById('p-subratita');
+        if (subratitaInput) subratitaInput.focus();
     } else {
         pubDiv.style.display = 'none';
-        btnCerrar.style.display = 'none';
+        if (btnCerrar) btnCerrar.style.display = 'none';
     }
 }
 
 function cerrarCajaPost() {
-    document.getElementById('tab-publicar').style.display = 'none';
-    document.getElementById('tab-perfil').style.display = 'none';
-    document.getElementById('btn-cerrar-post').style.display = 'none';
+    let pubDiv = document.getElementById('tab-publicar');
+    let perfilDiv = document.getElementById('tab-perfil');
+    let btnCerrar = document.getElementById('btn-cerrar-post');
+    
+    if (pubDiv) pubDiv.style.display = 'none';
+    if (perfilDiv) perfilDiv.style.display = 'none';
+    if (btnCerrar) btnCerrar.style.display = 'none';
 }
 
 function verTab(tabName) {
@@ -93,14 +91,13 @@ function verTab(tabName) {
     let btnCerrar = document.getElementById('btn-cerrar-post');
 
     if (tabName === 'publicar') {
-        pubDiv.style.display = 'block';
-        perfilDiv.style.display = 'none';
-        btnCerrar.style.display = 'inline-block';
-        generarCaptcha();
+        if (pubDiv) pubDiv.style.display = 'block';
+        if (perfilDiv) perfilDiv.style.display = 'none';
+        if (btnCerrar) btnCerrar.style.display = 'inline-block';
     } else {
-        pubDiv.style.display = 'none';
-        perfilDiv.style.display = 'block';
-        btnCerrar.style.display = 'none';
+        if (pubDiv) pubDiv.style.display = 'none';
+        if (perfilDiv) perfilDiv.style.display = 'block';
+        if (btnCerrar) btnCerrar.style.display = 'none';
     }
 }
 
@@ -124,10 +121,17 @@ function cargarBorrador() {
     }
 }
 
+// ---------- Autenticación ----------
+
 async function handleSignUp() {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
+    const emailField = document.getElementById('email');
+    const passwordField = document.getElementById('password');
     const msg = document.getElementById('status-msg');
+
+    if (!emailField || !passwordField || !msg) return;
+
+    const email = emailField.value.trim();
+    const password = passwordField.value;
 
     if (!email || !password) {
         msg.style.color = "red";
@@ -155,9 +159,14 @@ async function handleSignUp() {
 }
 
 async function handleSignIn() {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
+    const emailField = document.getElementById('email');
+    const passwordField = document.getElementById('password');
     const msg = document.getElementById('status-msg');
+
+    if (!emailField || !passwordField || !msg) return;
+
+    const email = emailField.value.trim();
+    const password = passwordField.value;
 
     if (!email || !password) {
         msg.style.color = "red";
@@ -242,10 +251,11 @@ function focusLogin() {
     }
 }
 
+// ---------- Publicaciones con Google reCAPTCHA v2 Integrado ----------
+
 async function enviarPost() {
     let subForumSelect = document.getElementById('p-subratita').value;
     let content = document.getElementById('p-content').value.trim();
-    let captchaInput = document.getElementById('captcha-respuesta');
     let status = document.getElementById('post-status');
 
     if (!subForumSelect) {
@@ -262,12 +272,17 @@ async function enviarPost() {
         return;
     }
 
-    // Validación del CAPTCHA matemático
-    if (!captchaInput || parseInt(captchaInput.value.trim()) !== captchaResultadoCorrecto) {
+    // Validación de reCAPTCHA v2
+    let recaptchaResponse = "";
+    try {
+        recaptchaResponse = grecaptcha.getResponse();
+    } catch (e) {
+        console.error(e);
+    }
+
+    if (!recaptchaResponse) {
         status.style.color = 'red';
-        status.innerText = "CAPTCHA incorrecto. ¡Resuelve bien la suma!";
-        generarCaptcha();
-        if (captchaInput) captchaInput.focus();
+        status.innerText = "Completa el reCAPTCHA para demostrar que no eres un bot.";
         return;
     }
 
@@ -288,7 +303,7 @@ async function enviarPost() {
         status.innerText = "¡Publicado!";
         document.getElementById('p-content').value = '';
         document.getElementById('p-subratita').value = '';
-        if (captchaInput) captchaInput.value = '';
+        try { grecaptcha.reset(); } catch(e) {}
         localStorage.removeItem('norros_draft');
         actualizarContador();
         cerrarCajaPost();
@@ -306,6 +321,8 @@ async function borrarPost(postId) {
         alert("Error al borrar: " + error.message);
     }
 }
+
+// ---------- Comentarios ----------
 
 async function enviarComentario(postId) {
     let input = document.getElementById(`comment-input-${postId}`);
@@ -341,8 +358,10 @@ async function borrarComentario(commentId) {
 
 function toggleReplyBox(postId) {
     let box = document.getElementById(`reply-form-${postId}`);
-    if(box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
 }
+
+// ---------- Formato, enlaces y resaltado ----------
 
 function formatMessage(text) {
     if (!text) return '';
@@ -367,6 +386,23 @@ function copiarLinkPost(postId) {
         alert("Error al copiar enlace.");
     });
 }
+
+function resaltarPostCompartido() {
+    let hash = window.location.hash;
+    if (hash.startsWith('#post-')) {
+        let el = document.querySelector(hash);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('highlight-post');
+            
+            setTimeout(() => {
+                el.classList.remove('highlight-post');
+            }, 3500);
+        }
+    }
+}
+
+// ---------- SubRatitas / Filtros ----------
 
 function filtrarPorSubratita(sub, actualizarHash = true) {
     currentSubratitaFiltro = sub;
@@ -393,24 +429,27 @@ function leerSubratitaDesdeURL() {
     }
 }
 
-function resaltarPostCompartido() {
-    let hash = window.location.hash;
-    if (hash.startsWith('#post-')) {
-        let el = document.querySelector(hash);
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            el.classList.add('highlight-post');
-            
-            setTimeout(() => {
-                el.classList.remove('highlight-post');
-            }, 3500);
-        }
-    }
-}
-
 function filtrarPosts() {
     renderFeed(allPostsData, allCommentsData);
 }
+
+function actualizarNavSubratitas() {
+    let navDiv = document.getElementById('subratitas-nav');
+    if (!navDiv) return;
+
+    let subsUnicas = [...new Set(allPostsData.map(p => p && (p.SubForum || p.subforum) ? (p.SubForum || p.subforum) : 'general'))];
+    
+    let html = `<button class="btn-chan ${currentSubratitaFiltro === 'todos' ? 'active-sub' : ''}" onclick="filtrarPorSubratita('todos')">[Todos]</button>`;
+    
+    subsUnicas.forEach(sub => {
+        let activeClass = currentSubratitaFiltro === sub ? 'active-sub' : '';
+        html += `<button class="btn-chan ${activeClass}" onclick="filtrarPorSubratita('${sub}')">[sr/${sub}]</button>`;
+    });
+
+    navDiv.innerHTML = html;
+}
+
+// ---------- Carga y Render del Feed ----------
 
 async function cargarPosts() {
     let feed = document.getElementById('feed');
@@ -461,22 +500,6 @@ async function cargarPosts() {
     actualizarNavSubratitas();
     renderFeed(allPostsData, allCommentsData);
     resaltarPostCompartido();
-}
-
-function actualizarNavSubratitas() {
-    let navDiv = document.getElementById('subratitas-nav');
-    if (!navDiv) return;
-
-    let subsUnicas = [...new Set(allPostsData.map(p => p && (p.SubForum || p.subforum) ? (p.SubForum || p.subforum) : 'general'))];
-    
-    let html = `<button class="btn-chan ${currentSubratitaFiltro === 'todos' ? 'active-sub' : ''}" onclick="filtrarPorSubratita('todos')">[Todos]</button>`;
-    
-    subsUnicas.forEach(sub => {
-        let activeClass = currentSubratitaFiltro === sub ? 'active-sub' : '';
-        html += `<button class="btn-chan ${activeClass}" onclick="filtrarPorSubratita('${sub}')">[sr/${sub}]</button>`;
-    });
-
-    navDiv.innerHTML = html;
 }
 
 function renderFeed(posts, comentarios) {
@@ -562,6 +585,8 @@ function renderFeed(posts, comentarios) {
         `;
     });
 }
+
+// ---------- Inicialización de Eventos y Arranque ----------
 
 window.addEventListener('hashchange', () => {
     leerSubratitaDesdeURL();
