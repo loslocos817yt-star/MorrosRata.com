@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" href="assets/web/favicon.png">
     <link rel="stylesheet" href="code/style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
 
@@ -89,6 +90,11 @@
                             </td>
                         </tr>
                         <tr>
+                            <td colspan="2" style="padding-top: 5px; text-align: center;">
+                                <div class="g-recaptcha" data-sitekey="6LfvtgAuAAAAAP_k2acB-joJJQGpN5NNwnBVCPIS" style="display: inline-block; transform:scale(0.85); transform-origin:0 0;"></div>
+                            </td>
+                        </tr>
+                        <tr>
                             <td colspan="2" style="padding-top: 5px;">
                                 <textarea id="p-content" rows="3" maxlength="500" placeholder="Escribe tu publicación (máx. 500 caracteres)..." oninput="actualizarContador()" required></textarea>
                                 <div class="char-counter" id="char-counter">500 / 500</div>
@@ -163,7 +169,7 @@
         Niños rata.com
     </div>
 
-    <!-- Script externo -->
+    <!-- Script único -->
     <script src="code/main.js"></script>
 </body>
 </html>

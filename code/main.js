@@ -7,9 +7,14 @@ let allPostsData = [];
 let allCommentsData = [];
 let currentSubratitaFiltro = 'todos';
 let knownCommentsCount = 0;
+let captchaResultadoCorrecto = 0;
 
 // Lista de usuarios considerados creadores/admins
 const ADMIN_USERS = ['doryansanchez72'];
+
+function escapeHtml(text) {
+    return text ? text.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t])) : '';
+}
 
 function obtenerBadgeUser(username) {
     let cleanUser = escapeHtml(username);
@@ -42,6 +47,22 @@ function enviarNotificacionCelular(titulo, mensaje) {
     }
 }
 
+// CAPTCHA Matemático Simple
+function generarCaptcha() {
+    let num1 = Math.floor(Math.random() * 10) + 1;
+    let num2 = Math.floor(Math.random() * 10) + 1;
+    captchaResultadoCorrecto = num1 + num2;
+    
+    let el = document.getElementById('captcha-pregunta');
+    if (el) {
+        el.innerText = `${num1} + ${num2} =`;
+    }
+    let inputResp = document.getElementById('captcha-respuesta');
+    if (inputResp) {
+        inputResp.value = '';
+    }
+}
+
 function togglePublishBox() {
     let pubDiv = document.getElementById('tab-publicar');
     let perfilDiv = document.getElementById('tab-perfil');
@@ -52,6 +73,7 @@ function togglePublishBox() {
     if (pubDiv.style.display === 'none' || pubDiv.style.display === '') {
         pubDiv.style.display = 'block';
         btnCerrar.style.display = 'inline-block';
+        generarCaptcha();
         document.getElementById('p-subratita').focus();
     } else {
         pubDiv.style.display = 'none';
@@ -74,6 +96,7 @@ function verTab(tabName) {
         pubDiv.style.display = 'block';
         perfilDiv.style.display = 'none';
         btnCerrar.style.display = 'inline-block';
+        generarCaptcha();
     } else {
         pubDiv.style.display = 'none';
         perfilDiv.style.display = 'block';
@@ -84,6 +107,7 @@ function verTab(tabName) {
 function actualizarContador() {
     let textarea = document.getElementById('p-content');
     let counter = document.getElementById('char-counter');
+    if (!textarea || !counter) return;
     let restantes = 500 - textarea.value.length;
     counter.innerText = `${restantes} / 500`;
     localStorage.setItem('norros_draft', textarea.value);
@@ -172,26 +196,34 @@ async function checkSession() {
         currentUserEmail = session.user.email;
         const username = currentUserEmail.split('@')[0];
         
-        userDisplay.innerHTML = obtenerBadgeUser(username);
+        if (userDisplay) userDisplay.innerHTML = obtenerBadgeUser(username);
 
-        document.getElementById('profile-username').innerHTML = obtenerBadgeUser(username);
-        document.getElementById('profile-email').innerText = currentUserEmail;
-        document.getElementById('profile-id').innerText = session.user.id;
-        document.getElementById('profile-last-login').innerText = new Date(session.user.last_sign_in_at).toLocaleString();
+        let pUser = document.getElementById('profile-username');
+        let pEmail = document.getElementById('profile-email');
+        let pId = document.getElementById('profile-id');
+        let pLogin = document.getElementById('profile-last-login');
 
-        authBox.style.display = 'none';
-        postBox.style.display = 'block';
-        navLoginBtn.innerText = `[ur/${username}]`;
+        if (pUser) pUser.innerHTML = obtenerBadgeUser(username);
+        if (pEmail) pEmail.innerText = currentUserEmail;
+        if (pId) pId.innerText = session.user.id;
+        if (pLogin && session.user.last_sign_in_at) {
+            pLogin.innerText = new Date(session.user.last_sign_in_at).toLocaleString();
+        }
+
+        if (authBox) authBox.style.display = 'none';
+        if (postBox) postBox.style.display = 'block';
+        if (navLoginBtn) navLoginBtn.innerText = `[ur/${username}]`;
 
         if ("Notification" in window && Notification.permission === "default") {
             Notification.requestPermission();
         }
     } else {
         currentUserEmail = '';
-        authBox.style.display = 'block';
-        postBox.style.display = 'none';
-        navLoginBtn.innerText = '[Login]';
-        document.getElementById('status-msg').innerText = '';
+        if (authBox) authBox.style.display = 'block';
+        if (postBox) postBox.style.display = 'none';
+        if (navLoginBtn) navLoginBtn.innerText = '[Login]';
+        let statusMsg = document.getElementById('status-msg');
+        if (statusMsg) statusMsg.innerText = '';
     }
 }
 
@@ -201,17 +233,19 @@ function focusLogin() {
         let pubDiv = document.getElementById('tab-publicar');
         let btnCerrar = document.getElementById('btn-cerrar-post');
         
-        pubDiv.style.display = 'none';
-        btnCerrar.style.display = 'none';
-        perfilDiv.style.display = perfilDiv.style.display === 'none' ? 'block' : 'none';
+        if (pubDiv) pubDiv.style.display = 'none';
+        if (btnCerrar) btnCerrar.style.display = 'none';
+        if (perfilDiv) perfilDiv.style.display = perfilDiv.style.display === 'none' ? 'block' : 'none';
     } else {
-        document.getElementById('email').focus();
+        let emailInput = document.getElementById('email');
+        if (emailInput) emailInput.focus();
     }
 }
 
 async function enviarPost() {
     let subForumSelect = document.getElementById('p-subratita').value;
     let content = document.getElementById('p-content').value.trim();
+    let captchaInput = document.getElementById('captcha-respuesta');
     let status = document.getElementById('post-status');
 
     if (!subForumSelect) {
@@ -225,6 +259,15 @@ async function enviarPost() {
         status.style.color = 'red';
         status.innerText = "Escribe un mensaje.";
         document.getElementById('p-content').focus();
+        return;
+    }
+
+    // Validación del CAPTCHA matemático
+    if (!captchaInput || parseInt(captchaInput.value.trim()) !== captchaResultadoCorrecto) {
+        status.style.color = 'red';
+        status.innerText = "CAPTCHA incorrecto. ¡Resuelve bien la suma!";
+        generarCaptcha();
+        if (captchaInput) captchaInput.focus();
         return;
     }
 
@@ -245,6 +288,7 @@ async function enviarPost() {
         status.innerText = "¡Publicado!";
         document.getElementById('p-content').value = '';
         document.getElementById('p-subratita').value = '';
+        if (captchaInput) captchaInput.value = '';
         localStorage.removeItem('norros_draft');
         actualizarContador();
         cerrarCajaPost();
@@ -265,6 +309,7 @@ async function borrarPost(postId) {
 
 async function enviarComentario(postId) {
     let input = document.getElementById(`comment-input-${postId}`);
+    if (!input) return;
     let content = input.value.trim();
 
     if (!content) return;
@@ -300,6 +345,7 @@ function toggleReplyBox(postId) {
 }
 
 function formatMessage(text) {
+    if (!text) return '';
     let escaped = escapeHtml(text);
     let lines = escaped.split('\n');
     let formattedLines = lines.map(line => {
@@ -355,7 +401,6 @@ function resaltarPostCompartido() {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             el.classList.add('highlight-post');
             
-            // Remueve la animación de resaltado después de 3.5 segundos
             setTimeout(() => {
                 el.classList.remove('highlight-post');
             }, 3500);
@@ -369,6 +414,7 @@ function filtrarPosts() {
 
 async function cargarPosts() {
     let feed = document.getElementById('feed');
+    if (!feed) return;
 
     let { data: posts, error } = await supabaseClient.from('jodidosPOST').select('*');
 
@@ -393,14 +439,15 @@ async function cargarPosts() {
 
     if (currentUserEmail && knownCommentsCount > 0 && nuevosComentarios.length > knownCommentsCount) {
         let currentUsername = currentUserEmail.split('@')[0];
-        let misPostIds = posts.filter(p => p.username === currentUsername).map(p => p.id);
+        let misPostIds = posts.filter(p => p && p.username === currentUsername).map(p => p.id);
         
         let ultimosComentarios = nuevosComentarios.slice(knownCommentsCount);
         ultimosComentarios.forEach(c => {
-            if (misPostIds.includes(c.post_ID) && c.username !== currentUsername) {
+            if (c && misPostIds.includes(c.post_ID) && c.username !== currentUsername) {
+                let textSnippet = (c.content || '').substring(0, 40);
                 enviarNotificacionCelular(
                     `¡Nueva respuesta en NiñosRata.com!`,
-                    `ur/${c.username} te respondió: "${c.content.substring(0, 40)}..."`
+                    `ur/${c.username} te respondió: "${textSnippet}..."`
                 );
             }
         });
@@ -420,7 +467,7 @@ function actualizarNavSubratitas() {
     let navDiv = document.getElementById('subratitas-nav');
     if (!navDiv) return;
 
-    let subsUnicas = [...new Set(allPostsData.map(p => p.SubForum || 'general'))];
+    let subsUnicas = [...new Set(allPostsData.map(p => p && (p.SubForum || p.subforum) ? (p.SubForum || p.subforum) : 'general'))];
     
     let html = `<button class="btn-chan ${currentSubratitaFiltro === 'todos' ? 'active-sub' : ''}" onclick="filtrarPorSubratita('todos')">[Todos]</button>`;
     
@@ -434,13 +481,22 @@ function actualizarNavSubratitas() {
 
 function renderFeed(posts, comentarios) {
     let feed = document.getElementById('feed');
+    if (!feed) return;
+
     let currentUsername = currentUserEmail ? currentUserEmail.split('@')[0] : '';
-    let searchQuery = document.getElementById('search-input') ? document.getElementById('search-input').value.toLowerCase().trim() : '';
+    let searchInput = document.getElementById('search-input');
+    let searchQuery = searchInput && searchInput.value ? searchInput.value.toLowerCase().trim() : '';
 
     let filtrados = posts.filter(p => {
-        let pSub = p.SubForum || 'general';
+        if (!p) return false;
+        let pSub = p.SubForum || p.subforum || 'general';
         let subMatches = currentSubratitaFiltro === 'todos' || pSub === currentSubratitaFiltro;
-        let searchMatches = !searchQuery || p.username.toLowerCase().includes(searchQuery) || p.content.toLowerCase().includes(searchQuery) || pSub.toLowerCase().includes(searchQuery);
+        
+        let uname = (p.username || '').toLowerCase();
+        let pContent = (p.content || '').toLowerCase();
+        let subNameStr = pSub.toLowerCase();
+
+        let searchMatches = !searchQuery || uname.includes(searchQuery) || pContent.includes(searchQuery) || subNameStr.includes(searchQuery);
         return subMatches && searchMatches;
     });
 
@@ -451,19 +507,20 @@ function renderFeed(posts, comentarios) {
 
     feed.innerHTML = '';
     filtrados.forEach(p => {
-        let fecha = new Date(p.created_at).toLocaleString();
-        let subName = p.SubForum || 'general';
-        let misComentarios = comentarios ? comentarios.filter(c => c.post_ID === p.id) : [];
+        let fecha = p.created_at ? new Date(p.created_at).toLocaleString() : 'Fecha desconocida';
+        let subName = p.SubForum || p.subforum || 'general';
+        let misComentarios = comentarios ? comentarios.filter(c => c && c.post_ID === p.id) : [];
         let commentsHTML = '';
 
         misComentarios.forEach(c => {
-            let cFecha = new Date(c.created_at).toLocaleString();
-            let esMiComentario = currentUsername && currentUsername === c.username;
+            let cFecha = c.created_at ? new Date(c.created_at).toLocaleString() : '';
+            let cUser = c.username || 'Anónimo';
+            let esMiComentario = currentUsername && currentUsername === cUser;
             let deleteCommentBtn = esMiComentario ? `<span class="delete-btn" onclick="borrarComentario(${c.id})">[Borrar]</span>` : '';
 
             commentsHTML += `
                 <div class="comment-card">
-                    ${obtenerBadgeUser(c.username)}
+                    ${obtenerBadgeUser(cUser)}
                     <span style="color:#666; font-size:10px;">${cFecha}</span>
                     ${deleteCommentBtn}
                     <div style="margin-top:2px;">${formatMessage(c.content)}</div>
@@ -478,13 +535,14 @@ function renderFeed(posts, comentarios) {
             </div>
         ` : `<div style="font-size:10px; color:#666; margin-top:5px;">(Inicia sesión para responder)</div>`;
 
-        let esMiPost = currentUsername && currentUsername === p.username;
+        let pUser = p.username || 'Anónimo';
+        let esMiPost = currentUsername && currentUsername === pUser;
         let deletePostBtn = esMiPost ? `<span class="delete-btn" onclick="borrarPost(${p.id})">[Borrar]</span>` : '';
 
         feed.innerHTML += `
             <div class="post-card" id="post-${p.id}">
                 <div class="post-header">
-                    ${obtenerBadgeUser(p.username)}
+                    ${obtenerBadgeUser(pUser)}
                     <span style="color: #004400; font-weight: bold; cursor: pointer;" onclick="filtrarPorSubratita('${subName}')">sr/${subName}</span>
                     <span>${fecha}</span>
                     <span style="float:right;">No. ${p.id}</span>
@@ -503,10 +561,6 @@ function renderFeed(posts, comentarios) {
             </div>
         `;
     });
-}
-
-function escapeHtml(text) {
-    return text ? text.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t])) : '';
 }
 
 window.addEventListener('hashchange', () => {
