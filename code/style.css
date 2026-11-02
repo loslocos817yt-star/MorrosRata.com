@@ -5,20 +5,21 @@ html, body {
 }
 
 body {
-    background-color: #121812;
+    background-color: #0b0f0b;
     background-image: url("../assets/web/imagen_Fondo.png");
     background-repeat: no-repeat;
     background-position: center center;
     background-size: cover;
     background-attachment: fixed;
-    color: #111;
+    color: #e0e0e0;
     font-family: "MS PGothic", monospace;
 }
 
 .board-header {
     text-align: center;
-    padding: 15px 0 5px 0;
-    background-color: rgba(11, 15, 11, 0.85);
+    padding: 18px 0 8px 0;
+    background-color: rgba(10, 15, 10, 0.95);
+    border-bottom: 2px solid #234d23;
 }
 
 .board-logo {
@@ -28,63 +29,65 @@ body {
     margin: 0 auto;
     user-select: none;
     -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
 }
 
 .navbar {
-    background-color: rgba(22, 28, 22, 0.9);
-    border-top: 1px solid #334d33;
-    border-bottom: 2px solid #2e5c2e;
+    background-color: rgba(15, 22, 15, 0.95);
+    border-bottom: 2px solid #2b5c2b;
     text-align: center;
-    padding: 6px 0;
+    padding: 8px 0;
     margin-bottom: 15px;
     user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
 }
 
 .navbar a {
     color: #00ff66;
     text-decoration: none;
-    margin: 0 10px;
-    font-size: 12px;
+    margin: 0 12px;
+    font-size: 13px;
     font-weight: bold;
     cursor: pointer;
 }
 
 .navbar a:hover {
     text-decoration: underline;
+    color: #66ff99;
 }
 
 .main-container {
     max-width: 800px;
     margin: 0 auto 20px auto;
-    background-color: rgba(204, 204, 204, 0.95);
-    border: 2px solid #3b8a3b;
-    padding: 10px;
+    background-color: #eef2ee;
+    border: 2px solid #2e5c2e;
+    border-radius: 3px;
+    padding: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
 }
 
 .box-container {
-    background-color: #dcdcdc;
-    border: 1px solid #888;
-    padding: 8px;
+    background-color: #ffffff;
+    border: 1px solid #8fa88f;
+    border-radius: 2px;
+    padding: 12px;
     margin-bottom: 15px;
-    font-size: 11px;
+    font-size: 12px;
+    color: #111111;
 }
 
 .box-container table {
     width: 100%;
 }
 
+.box-container td {
+    color: #111111;
+}
+
 .account-brand-header {
     text-align: center;
     margin-bottom: 8px;
-    border-bottom: 1px solid #aaa;
-    padding-bottom: 5px;
+    border-bottom: 1px solid #b5c2b5;
+    padding-bottom: 6px;
     user-select: none;
-    -webkit-user-select: none;
 }
 
 .account-brand-logo {
@@ -93,127 +96,150 @@ body {
     display: inline-block;
 }
 
-input[type="text"], textarea {
+input[type="text"], input[type="password"], textarea, select {
     width: 96%;
-    background-color: #fff;
-    border: 1px solid #777;
-    font-size: 11px;
+    background-color: #ffffff;
+    border: 1px solid #557a55;
+    border-radius: 2px;
+    font-size: 12px;
     font-family: monospace;
-    padding: 3px;
+    padding: 6px;
+    color: #000000;
+}
+
+input[type="text"]:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #1b4d1b;
+    box-shadow: 0 0 4px rgba(27, 77, 27, 0.4);
 }
 
 .post-card {
-    background-color: #e4e4e4;
-    border: 1px solid #3b8a3b;
-    padding: 8px;
-    margin-bottom: 10px;
-    transition: background-color 0.4s ease, border 0.4s ease;
+    background-color: #ffffff;
+    border: 1px solid #a3b8a3;
+    border-left: 5px solid #2b5c2b;
+    border-radius: 2px;
+    padding: 12px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
-/* Resaltado estilo Retro / Marcador clásico (Sin neón ni luces) */
+/* Resaltado estilo Retro */
 .post-card.highlight-post {
-    border: 2px dashed #006600 !important;
-    background-color: #f2f5c8 !important; /* Amarillo retro / verde seco */
+    border: 2px dashed #1b4d1b !important;
+    background-color: #f4fae6 !important;
 }
 
 .post-header {
     font-size: 11px;
-    background-color: #c4c4c4;
-    padding: 3px 6px;
-    margin-bottom: 6px;
-    border-bottom: 1px solid #aaa;
+    background-color: #d8e6d8;
+    border: 1px solid #b0c9b0;
+    color: #222222;
+    padding: 5px 8px;
+    margin-bottom: 8px;
+    border-radius: 2px;
 }
 
 .postername {
-    color: #006600;
+    color: #004d00;
     font-weight: bold;
 }
 
 .message {
-    font-size: 12px;
-    line-height: 1.4;
-    color: #111;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #111111;
     word-break: break-all;
     white-space: pre-wrap;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
+/* SECCIÓN DE COMENTARIOS CORREGIDA Y NÍTIDA */
 .comments-section {
-    margin-left: 15px;
-    border-left: 2px solid #3b8a3b;
-    padding-left: 8px;
-    margin-top: 8px;
+    margin-left: 12px;
+    border-left: 2px solid #487a48;
+    padding-left: 10px;
+    margin-top: 10px;
 }
 
 .comment-card {
-    background-color: #d6d6d6;
-    border: 1px solid #bcbcbc;
-    padding: 4px 6px;
-    margin-bottom: 4px;
-    font-size: 11px;
+    background-color: #f7f9f7;
+    border: 1px solid #b5c7b5;
+    border-radius: 2px;
+    padding: 8px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #111111;
+    line-height: 1.4;
+}
+
+.comment-card span {
+    color: #333333 !important;
 }
 
 .reply-btn, .delete-btn {
-    font-size: 10px;
+    font-size: 11px;
     cursor: pointer;
     text-decoration: underline;
     user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+    font-weight: bold;
 }
 
 .reply-btn {
-    color: #0000ee;
+    color: #0033aa;
 }
 
 .delete-btn {
-    color: #cc0000;
+    color: #bb0000;
     margin-left: 8px;
 }
 
 .btn-chan {
-    background-color: #dcdcdc;
-    border: 2px outset #aaa;
+    background-color: #e2e8e2;
+    border: 1px solid #6b8a6b;
+    border-bottom: 2px solid #405c40;
+    border-radius: 3px;
     font-family: monospace;
     font-size: 11px;
     font-weight: bold;
-    padding: 3px 8px;
+    color: #112611;
+    padding: 5px 10px;
     cursor: pointer;
     user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+}
+
+.btn-chan:hover {
+    background-color: #d0dcd0;
 }
 
 .btn-chan:active {
-    border-style: inset;
+    border-bottom: 1px solid #405c40;
+    transform: translateY(1px);
 }
 
 #status-msg, #post-status {
     font-weight: bold;
-    margin-top: 5px;
+    margin-top: 6px;
     font-size: 11px;
 }
 
 .char-counter {
     font-size: 10px;
-    color: #555;
+    color: #444444;
     text-align: right;
-    margin-top: 2px;
+    margin-top: 3px;
+    font-weight: bold;
 }
 
 .footer {
     text-align: center;
     font-size: 10px;
-    color: #ccc;
+    color: #b5c7b5;
     margin-bottom: 20px;
     user-select: none;
-    -webkit-user-select: none;
     text-shadow: 1px 1px 2px #000;
 }
 
 .greentext {
-    color: #789922;
+    color: #4a7500;
     font-weight: bold;
 }

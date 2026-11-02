@@ -1,8 +1,3 @@
-// ============================================================
-// main.js — Archivo único unificado con autenticación, feed,
-// Google reCAPTCHA v2 y reglas del foro integradas.
-// ============================================================
-
 const SUPABASE_URL = 'https://rioyrsemrzcznwhjwanj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpb3lyc2Vtcnpjem53aGp3YW5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNjUwNDAsImV4cCI6MjEwNzg0MTA0MH0.lkjOmIPdqWCWm6h42RkJNjnjFciFQxATcsTx8knPUeg';
 
@@ -12,11 +7,7 @@ let allPostsData = [];
 let allCommentsData = [];
 let currentSubratitaFiltro = 'todos';
 let knownCommentsCount = 0;
-
-// Lista de usuarios considerados creadores/admins
 const ADMIN_USERS = ['doryansanchez72'];
-
-// ---------- Utilidades de escape HTML ----------
 
 function escapeHtml(text) {
     return text ? text.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t])) : '';
@@ -25,50 +16,41 @@ function escapeHtml(text) {
 function obtenerBadgeUser(username) {
     let cleanUser = escapeHtml(username);
     if (ADMIN_USERS.includes(username)) {
-        return `<span class="postername">ur/${cleanUser}</span> <img src="assets/web/admin.log.png" alt="Admin" style="height: 18px; vertical-align: middle; margin: 0 4px;" title="Creador / Admin">`;
+        return `<span class="postername">ur/${cleanUser}</span> <img src="assets/web/admin.log.png" alt="Admin" style="height: 18px; vertical-align: middle; margin: 0 4px;" title="Admin">`;
     }
     return `<span class="postername">ur/${cleanUser}</span>`;
 }
-
-// ---------- Notificaciones ----------
 
 function solicitarPermisoNotificaciones() {
     if ("Notification" in window) {
         Notification.requestPermission().then(permission => {
             if (permission === "granted") {
-                alert("¡Notificaciones activadas correctamente! Te avisaremos cuando respondan a tus publicaciones.");
+                alert("¡Notificaciones activadas!");
             } else if (permission === "denied") {
-                alert("Bloqueaste las notificaciones. Puedes activarlas en la configuración de tu navegador.");
+                alert("Notificaciones bloqueadas.");
             }
         });
     } else {
-        alert("Tu navegador no soporta notificaciones del celular.");
+        alert("Tu navegador no soporta notificaciones.");
     }
 }
 
 function enviarNotificacionCelular(titulo, mensaje) {
     if ("Notification" in window && Notification.permission === "granted") {
-        new Notification(titulo, {
-            body: mensaje,
-            icon: 'assets/web/favicon.png'
-        });
+        new Notification(titulo, { body: mensaje, icon: 'assets/web/favicon.png' });
     }
 }
-
-// ---------- UI: Cajas de publicar / perfil / reglas ----------
 
 function togglePublishBox() {
     let pubDiv = document.getElementById('tab-publicar');
     let perfilDiv = document.getElementById('tab-perfil');
     let btnCerrar = document.getElementById('btn-cerrar-post');
-    
     if (perfilDiv) perfilDiv.style.display = 'none';
-    
     if (pubDiv.style.display === 'none' || pubDiv.style.display === '') {
         pubDiv.style.display = 'block';
         if (btnCerrar) btnCerrar.style.display = 'inline-block';
-        let subratitaInput = document.getElementById('p-subratita');
-        if (subratitaInput) subratitaInput.focus();
+        let subInput = document.getElementById('p-subratita');
+        if (subInput) subInput.focus();
     } else {
         pubDiv.style.display = 'none';
         if (btnCerrar) btnCerrar.style.display = 'none';
@@ -79,7 +61,6 @@ function cerrarCajaPost() {
     let pubDiv = document.getElementById('tab-publicar');
     let perfilDiv = document.getElementById('tab-perfil');
     let btnCerrar = document.getElementById('btn-cerrar-post');
-    
     if (pubDiv) pubDiv.style.display = 'none';
     if (perfilDiv) perfilDiv.style.display = 'none';
     if (btnCerrar) btnCerrar.style.display = 'none';
@@ -89,7 +70,6 @@ function verTab(tabName) {
     let pubDiv = document.getElementById('tab-publicar');
     let perfilDiv = document.getElementById('tab-perfil');
     let btnCerrar = document.getElementById('btn-cerrar-post');
-
     if (tabName === 'publicar') {
         if (pubDiv) pubDiv.style.display = 'block';
         if (perfilDiv) perfilDiv.style.display = 'none';
@@ -121,34 +101,26 @@ function cargarBorrador() {
     }
 }
 
-// ---------- Autenticación ----------
-
 async function handleSignUp() {
     const emailField = document.getElementById('email');
     const passwordField = document.getElementById('password');
     const msg = document.getElementById('status-msg');
-
     if (!emailField || !passwordField || !msg) return;
-
     const email = emailField.value.trim();
     const password = passwordField.value;
-
     if (!email || !password) {
         msg.style.color = "red";
         msg.innerText = "Escribe correo y contraseña.";
         return;
     }
-
     msg.style.color = "blue";
     msg.innerText = "Registrando...";
-
     const { data, error } = await supabaseClient.auth.signUp({ email, password });
     if (error) {
         msg.style.color = "red";
         msg.innerText = "Error: " + error.message;
         return;
     }
-
     if (data && data.user) {
         const usernameVal = email.split('@')[0];
         await supabaseClient.from('users').insert([{ username: usernameVal }]);
@@ -162,21 +134,16 @@ async function handleSignIn() {
     const emailField = document.getElementById('email');
     const passwordField = document.getElementById('password');
     const msg = document.getElementById('status-msg');
-
     if (!emailField || !passwordField || !msg) return;
-
     const email = emailField.value.trim();
     const password = passwordField.value;
-
     if (!email || !password) {
         msg.style.color = "red";
         msg.innerText = "Escribe correo y contraseña.";
         return;
     }
-
     msg.style.color = "blue";
     msg.innerText = "Conectando...";
-
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) {
         msg.style.color = "red";
@@ -204,7 +171,6 @@ async function checkSession() {
     if (session) {
         currentUserEmail = session.user.email;
         const username = currentUserEmail.split('@')[0];
-        
         if (userDisplay) userDisplay.innerHTML = obtenerBadgeUser(username);
 
         let pUser = document.getElementById('profile-username');
@@ -241,7 +207,6 @@ function focusLogin() {
         let perfilDiv = document.getElementById('tab-perfil');
         let pubDiv = document.getElementById('tab-publicar');
         let btnCerrar = document.getElementById('btn-cerrar-post');
-        
         if (pubDiv) pubDiv.style.display = 'none';
         if (btnCerrar) btnCerrar.style.display = 'none';
         if (perfilDiv) perfilDiv.style.display = perfilDiv.style.display === 'none' ? 'block' : 'none';
@@ -251,8 +216,6 @@ function focusLogin() {
     }
 }
 
-// ---------- Publicaciones con Google reCAPTCHA v2 Integrado ----------
-
 async function enviarPost() {
     let subForumSelect = document.getElementById('p-subratita').value;
     let content = document.getElementById('p-content').value.trim();
@@ -260,7 +223,7 @@ async function enviarPost() {
 
     if (!subForumSelect) {
         status.style.color = 'red';
-        status.innerText = "Selecciona una SubRatita (SR) de la lista.";
+        status.innerText = "Selecciona una SubRatita.";
         document.getElementById('p-subratita').focus();
         return;
     }
@@ -272,17 +235,12 @@ async function enviarPost() {
         return;
     }
 
-    // Validación de reCAPTCHA v2
     let recaptchaResponse = "";
-    try {
-        recaptchaResponse = grecaptcha.getResponse();
-    } catch (e) {
-        console.error(e);
-    }
+    try { recaptchaResponse = grecaptcha.getResponse(); } catch (e) {}
 
     if (!recaptchaResponse) {
         status.style.color = 'red';
-        status.innerText = "Completa el reCAPTCHA para demostrar que no eres un bot.";
+        status.innerText = "Completa el reCAPTCHA.";
         return;
     }
 
@@ -312,48 +270,34 @@ async function enviarPost() {
 }
 
 async function borrarPost(postId) {
-    if (!confirm("¿Seguro que quieres borrar esta publicación?")) return;
-
+    if (!confirm("¿Borrar publicación?")) return;
     let { error } = await supabaseClient.from('jodidosPOST').delete().eq('id', postId);
-    if (!error) {
-        cargarPosts();
-    } else {
-        alert("Error al borrar: " + error.message);
-    }
+    if (!error) cargarPosts();
+    else alert("Error: " + error.message);
 }
-
-// ---------- Comentarios ----------
 
 async function enviarComentario(postId) {
     let input = document.getElementById(`comment-input-${postId}`);
     if (!input) return;
     let content = input.value.trim();
-
     if (!content) return;
-
     let authorName = currentUserEmail ? currentUserEmail.split('@')[0] : 'Anónimo';
-
     let { error } = await supabaseClient.from('JodeteComentarios').insert([
         { post_ID: postId, username: authorName, content: content }
     ]);
-
     if (!error) {
         input.value = '';
         cargarPosts();
     } else {
-        alert("Error al comentar: " + error.message);
+        alert("Error: " + error.message);
     }
 }
 
 async function borrarComentario(commentId) {
-    if (!confirm("¿Seguro que quieres borrar este comentario?")) return;
-
+    if (!confirm("¿Borrar comentario?")) return;
     let { error } = await supabaseClient.from('JodeteComentarios').delete().eq('id', commentId);
-    if (!error) {
-        cargarPosts();
-    } else {
-        alert("Error al borrar el comentario: " + error.message);
-    }
+    if (!error) cargarPosts();
+    else alert("Error: " + error.message);
 }
 
 function toggleReplyBox(postId) {
@@ -361,30 +305,20 @@ function toggleReplyBox(postId) {
     if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
 }
 
-// ---------- Formato, enlaces y resaltado ----------
-
 function formatMessage(text) {
     if (!text) return '';
     let escaped = escapeHtml(text);
-    let lines = escaped.split('\n');
-    let formattedLines = lines.map(line => {
-        if (line.trim().startsWith('&gt;')) {
-            return `<span class="greentext">${line}</span>`;
-        }
+    return escaped.split('\n').map(line => {
+        if (line.trim().startsWith('&gt;')) return `<span class="greentext">${line}</span>`;
         return line;
-    });
-    return formattedLines.join('<br>');
+    }).join('<br>');
 }
 
 function copiarLinkPost(postId) {
-    let urlBase = window.location.origin + window.location.pathname;
-    let link = `${urlBase}#post-${postId}`;
-    
+    let link = `${window.location.origin}${window.location.pathname}#post-${postId}`;
     navigator.clipboard.writeText(link).then(() => {
-        alert(`¡Enlace copiado al portapapeles!\n${link}`);
-    }).catch(err => {
-        alert("Error al copiar enlace.");
-    });
+        alert(`¡Enlace copiado!\n${link}`);
+    }).catch(() => alert("Error al copiar enlace."));
 }
 
 function resaltarPostCompartido() {
@@ -394,27 +328,17 @@ function resaltarPostCompartido() {
         if (el) {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             el.classList.add('highlight-post');
-            
-            setTimeout(() => {
-                el.classList.remove('highlight-post');
-            }, 3500);
+            setTimeout(() => el.classList.remove('highlight-post'), 3500);
         }
     }
 }
 
-// ---------- SubRatitas / Filtros ----------
-
 function filtrarPorSubratita(sub, actualizarHash = true) {
     currentSubratitaFiltro = sub;
-    
     if (actualizarHash) {
-        if (sub === 'todos') {
-            history.pushState(null, null, ' ');
-        } else {
-            window.location.hash = `sr/${sub}`;
-        }
+        if (sub === 'todos') history.pushState(null, null, ' ');
+        else window.location.hash = `sr/${sub}`;
     }
-
     renderFeed(allPostsData, allCommentsData);
     actualizarNavSubratitas();
 }
@@ -422,8 +346,7 @@ function filtrarPorSubratita(sub, actualizarHash = true) {
 function leerSubratitaDesdeURL() {
     let hash = window.location.hash.replace('#', '');
     if (hash.startsWith('sr/')) {
-        let sub = hash.replace('sr/', '');
-        currentSubratitaFiltro = sub;
+        currentSubratitaFiltro = hash.replace('sr/', '');
     } else if (hash.startsWith('post-')) {
         currentSubratitaFiltro = 'todos';
     }
@@ -436,66 +359,45 @@ function filtrarPosts() {
 function actualizarNavSubratitas() {
     let navDiv = document.getElementById('subratitas-nav');
     if (!navDiv) return;
-
     let subsUnicas = [...new Set(allPostsData.map(p => p && (p.SubForum || p.subforum) ? (p.SubForum || p.subforum) : 'general'))];
-    
     let html = `<button class="btn-chan ${currentSubratitaFiltro === 'todos' ? 'active-sub' : ''}" onclick="filtrarPorSubratita('todos')">[Todos]</button>`;
-    
     subsUnicas.forEach(sub => {
         let activeClass = currentSubratitaFiltro === sub ? 'active-sub' : '';
         html += `<button class="btn-chan ${activeClass}" onclick="filtrarPorSubratita('${sub}')">[sr/${sub}]</button>`;
     });
-
     navDiv.innerHTML = html;
 }
-
-// ---------- Carga y Render del Feed ----------
 
 async function cargarPosts() {
     let feed = document.getElementById('feed');
     if (!feed) return;
-
     let { data: posts, error } = await supabaseClient.from('jodidosPOST').select('*');
-
     if (error) {
-        feed.innerHTML = `<div style="color:red; text-align:center;">Error cargando posts: ${error.message}</div>`;
+        feed.innerHTML = `<div style="color:red; text-align:center;">Error: ${error.message}</div>`;
         return;
     }
-
     if (!posts || posts.length === 0) {
-        feed.innerHTML = `<div style="text-align:center; font-size:11px;">No hay publicaciones todavía. ¡Sé el primero en publicar!</div>`;
+        feed.innerHTML = `<div style="text-align:center; font-size:11px;">No hay publicaciones todavía.</div>`;
         return;
     }
-
     for (let i = posts.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
         [posts[i], posts[j]] = [posts[j], posts[i]];
     }
-
     let { data: comentarios } = await supabaseClient.from('JodeteComentarios').select('*').order('created_at', { ascending: true });
-
     let nuevosComentarios = comentarios || [];
-
     if (currentUserEmail && knownCommentsCount > 0 && nuevosComentarios.length > knownCommentsCount) {
         let currentUsername = currentUserEmail.split('@')[0];
         let misPostIds = posts.filter(p => p && p.username === currentUsername).map(p => p.id);
-        
-        let ultimosComentarios = nuevosComentarios.slice(knownCommentsCount);
-        ultimosComentarios.forEach(c => {
+        nuevosComentarios.slice(knownCommentsCount).forEach(c => {
             if (c && misPostIds.includes(c.post_ID) && c.username !== currentUsername) {
-                let textSnippet = (c.content || '').substring(0, 40);
-                enviarNotificacionCelular(
-                    `¡Nueva respuesta en NiñosRata.com!`,
-                    `ur/${c.username} te respondió: "${textSnippet}..."`
-                );
+                enviarNotificacionCelular(`¡Nueva respuesta!`, `ur/${c.username} te respondió.`);
             }
         });
     }
-
     knownCommentsCount = nuevosComentarios.length;
     allPostsData = posts;
     allCommentsData = nuevosComentarios;
-
     leerSubratitaDesdeURL();
     actualizarNavSubratitas();
     renderFeed(allPostsData, allCommentsData);
@@ -505,7 +407,6 @@ async function cargarPosts() {
 function renderFeed(posts, comentarios) {
     let feed = document.getElementById('feed');
     if (!feed) return;
-
     let currentUsername = currentUserEmail ? currentUserEmail.split('@')[0] : '';
     let searchInput = document.getElementById('search-input');
     let searchQuery = searchInput && searchInput.value ? searchInput.value.toLowerCase().trim() : '';
@@ -514,17 +415,15 @@ function renderFeed(posts, comentarios) {
         if (!p) return false;
         let pSub = p.SubForum || p.subforum || 'general';
         let subMatches = currentSubratitaFiltro === 'todos' || pSub === currentSubratitaFiltro;
-        
         let uname = (p.username || '').toLowerCase();
         let pContent = (p.content || '').toLowerCase();
         let subNameStr = pSub.toLowerCase();
-
         let searchMatches = !searchQuery || uname.includes(searchQuery) || pContent.includes(searchQuery) || subNameStr.includes(searchQuery);
         return subMatches && searchMatches;
     });
 
     if (!filtrados || filtrados.length === 0) {
-        feed.innerHTML = `<div style="text-align:center; font-size:11px;">No se encontraron publicaciones en este SR.</div>`;
+        feed.innerHTML = `<div style="text-align:center; font-size:11px;">No se encontraron publicaciones.</div>`;
         return;
     }
 
@@ -538,9 +437,7 @@ function renderFeed(posts, comentarios) {
         misComentarios.forEach(c => {
             let cFecha = c.created_at ? new Date(c.created_at).toLocaleString() : '';
             let cUser = c.username || 'Anónimo';
-            let esMiComentario = currentUsername && currentUsername === cUser;
-            let deleteCommentBtn = esMiComentario ? `<span class="delete-btn" onclick="borrarComentario(${c.id})">[Borrar]</span>` : '';
-
+            let deleteCommentBtn = (currentUsername && currentUsername === cUser) ? `<span class="delete-btn" onclick="borrarComentario(${c.id})">[Borrar]</span>` : '';
             commentsHTML += `
                 <div class="comment-card">
                     ${obtenerBadgeUser(cUser)}
@@ -553,40 +450,31 @@ function renderFeed(posts, comentarios) {
 
         let replyFormHTML = currentUserEmail ? `
             <div id="reply-form-${p.id}" style="display:none; margin-top:8px;">
-                <input type="text" id="comment-input-${p.id}" maxlength="500" placeholder="Escribe tu respuesta..." style="width:70%;">
+                <input type="text" id="comment-input-${p.id}" maxlength="500" placeholder="Respuesta..." style="width:70%;">
                 <button class="btn-chan" onclick="enviarComentario(${p.id})">Enviar</button>
             </div>
         ` : `<div style="font-size:10px; color:#666; margin-top:5px;">(Inicia sesión para responder)</div>`;
 
-        let pUser = p.username || 'Anónimo';
-        let esMiPost = currentUsername && currentUsername === pUser;
-        let deletePostBtn = esMiPost ? `<span class="delete-btn" onclick="borrarPost(${p.id})">[Borrar]</span>` : '';
+        let deletePostBtn = (currentUsername && currentUsername === (p.username || 'Anónimo')) ? `<span class="delete-btn" onclick="borrarPost(${p.id})">[Borrar]</span>` : '';
 
         feed.innerHTML += `
             <div class="post-card" id="post-${p.id}">
                 <div class="post-header">
-                    ${obtenerBadgeUser(pUser)}
+                    ${obtenerBadgeUser(p.username || 'Anónimo')}
                     <span style="color: #004400; font-weight: bold; cursor: pointer;" onclick="filtrarPorSubratita('${subName}')">sr/${subName}</span>
                     <span>${fecha}</span>
                     <span style="float:right;">No. ${p.id}</span>
                 </div>
                 <div class="message">${formatMessage(p.content)}</div>
-
-                <span class="reply-btn" onclick="toggleReplyBox(${p.id})">[Responder]</span> (${misComentarios.length} comentarios)
+                <span class="reply-btn" onclick="toggleReplyBox(${p.id})">[Responder]</span> (${misComentarios.length})
                 <span class="reply-btn" style="color:#006600; margin-left:6px;" onclick="copiarLinkPost(${p.id})">[Compartir]</span>
                 ${deletePostBtn}
-
                 ${replyFormHTML}
-
-                <div class="comments-section">
-                    ${commentsHTML}
-                </div>
+                <div class="comments-section">${commentsHTML}</div>
             </div>
         `;
     });
 }
-
-// ---------- Inicialización de Eventos y Arranque ----------
 
 window.addEventListener('hashchange', () => {
     leerSubratitaDesdeURL();
@@ -598,7 +486,4 @@ window.addEventListener('hashchange', () => {
 checkSession();
 cargarBorrador();
 cargarPosts();
-
-setInterval(() => {
-    cargarPosts();
-}, 15000);
+setInterval(() => { cargarPosts(); }, 15000);
