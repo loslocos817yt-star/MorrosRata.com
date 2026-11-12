@@ -244,3 +244,33 @@ function renderFeed(posts, comentarios) {
         `;
     });
 }
+
+// --- GESTIÓN DEL MENÚ DE TRES PUNTITOS Y TEMAS (ROBUSTO) ---
+function toggleMenuTresPuntitos(event) {
+    if (event) event.stopPropagation();
+    let menu = document.getElementById('dropdown-menu-puntitos');
+    if (menu) {
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
+}
+
+// Cerrar al hacer clic fuera
+document.addEventListener('click', function(e) {
+    let menu = document.getElementById('dropdown-menu-puntitos');
+    let btn = e.target.closest('button[onclick*="toggleMenuTresPuntitos"]');
+    if (menu && !menu.contains(e.target) && !btn) {
+        menu.style.display = 'none';
+    }
+});
+
+function cambiarTema(nombreTema) {
+    document.body.className = `theme-${nombreTema}`;
+    localStorage.setItem('ninosrata_theme', nombreTema);
+    let menu = document.getElementById('dropdown-menu-puntitos');
+    if (menu) menu.style.display = 'none';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    let savedTheme = localStorage.getItem('ninosrata_theme') || 'original';
+    document.body.className = `theme-${savedTheme}`;
+});

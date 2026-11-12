@@ -243,3 +243,67 @@ input[type="text"]:focus, textarea:focus, select:focus {
     color: #4a7500;
     font-weight: bold;
 }
+
+/* --- TEMAS DE INTERFAZ --- */
+body.theme-original {
+    /* Usa los valores por defecto que acabas de definir */
+}
+
+body.theme-4chan {
+    background-color: #f0e4d8 !important;
+}
+body.theme-4chan .main-container {
+    background-color: #eed3b7 !important;
+    border-color: #d1b290 !important;
+}
+body.theme-4chan .box-container, body.theme-4chan .post-card, body.theme-4chan .comment-card {
+    background-color: #f5e1cc !important;
+    border-color: #d8bc9e !important;
+}
+body.theme-4chan .post-header {
+    background-color: #e2c2a1 !important;
+    border-color: #ccab88 !important;
+}
+
+body.theme-oscuro {
+    background-color: #0b0f0b !important;
+}
+body.theme-oscuro .main-container {
+    background-color: #182018 !important;
+    border-color: #234d23 !important;
+    color: #00ff66 !important;
+}
+body.theme-oscuro .box-container, body.theme-oscuro .post-card, body.theme-oscuro .comment-card {
+    background-color: #121812 !important;
+    border-color: #2b5c2b !important;
+    color: #e0e0e0 !important;
+}
+body.theme-oscuro .post-header {
+    background-color: #1b281b !important;
+    border-color: #2e5c2e !important;
+    color: #00ff66 !important;
+}
+body.theme-oscuro input[type="text"], body.theme-oscuro input[type="password"], body.theme-oscuro textarea, body.theme-oscuro select {
+    background-color: #1a241a !important;
+    color: #00ff66 !important;
+    border-color: #3b7a3b !important;
+}
+body.theme-oscuro .message, body.theme-oscuro .box-container td, body.theme-oscuro .comment-card span {
+    color: #d0f0d0 !important;
+}
+
+body.theme-claro {
+    background-color: #e6e6e6 !important;
+}
+body.theme-claro .main-container {
+    background-color: #ffffff !important;
+    border-color: #b0b0b0 !important;
+}
+body.theme-claro .box-container, body.theme-claro .post-card, body.theme-claro .comment-card {
+    background-color: #fafafa !important;
+    border-color: #d0d0d0 !important;
+}
+body.theme-claro .post-header {
+    background-color: #eeeeee !important;
+    border-color: #cccccc !important;
+}
