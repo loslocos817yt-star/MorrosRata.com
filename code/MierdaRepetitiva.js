@@ -144,7 +144,7 @@ async function enviarPost() {
     let authorName = currentUserEmail ? currentUserEmail.split('@')[0] : 'Anónimo';
 
     let { error } = await supabaseClient.from('jodidosPOST').insert([
-        { username: authorName, content: content, SubForum: subForumSelect }
+        { username: authorName, content: content, SubForum: subForumSelect, views: 0 }
     ]);
 
     if (error) {
@@ -215,7 +215,6 @@ async function darLike(postId) {
         votados.push(postId);
         localStorage.setItem('voted_posts', JSON.stringify(votados));
         
-        // Actualizar el valor al instante en la memoria local para repintar sin recargar
         let postLocal = allPostsData.find(p => p.id === postId);
         if (postLocal) {
             postLocal.likes = nuevoContador;
