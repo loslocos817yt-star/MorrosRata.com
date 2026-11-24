@@ -9,6 +9,14 @@ let currentSubratitaFiltro = 'todos';
 let knownCommentsCount = 0;
 const ADMIN_USERS = ['doryansanchez72'];
 
+function obtenerNombreActivo() {
+    let customName = localStorage.getItem('ninosrata_custom_name');
+    if (customName && customName.trim() !== '') {
+        return customName.trim();
+    }
+    return currentUserEmail ? currentUserEmail.split('@')[0] : 'Anónimo';
+}
+
 async function handleSignUp() {
     const emailField = document.getElementById('email');
     const passwordField = document.getElementById('password');
@@ -78,7 +86,13 @@ async function checkSession() {
 
     if (session) {
         currentUserEmail = session.user.email;
-        const username = currentUserEmail.split('@')[0];
+        const defaultName = currentUserEmail.split('@')[0];
+
+        if (!localStorage.getItem('ninosrata_custom_name') && session.user.user_metadata && session.user.user_metadata.display_name) {
+            localStorage.setItem('ninosrata_custom_name', session.user.user_metadata.display_name);
+        }
+
+        const username = obtenerNombreActivo();
         if (userDisplay) userDisplay.innerHTML = obtenerBadgeUser(username);
 
         let pUser = document.getElementById('profile-username');
@@ -92,6 +106,8 @@ async function checkSession() {
         if (pLogin && session.user.last_sign_in_at) {
             pLogin.innerText = new Date(session.user.last_sign_in_at).toLocaleString();
         }
+
+        inyectarEditorNombre(username);
 
         if (authBox) authBox.style.display = 'none';
         if (postBox) postBox.style.display = 'block';
@@ -108,6 +124,49 @@ async function checkSession() {
         let statusMsg = document.getElementById('status-msg');
         if (statusMsg) statusMsg.innerText = '';
     }
+}
+
+async function guardarNuevoNombre() {
+    const input = document.getElementById('edit-username-input');
+    const status = document.getElementById('edit-name-status');
+    if (!input) return;
+
+    let nuevoNombre = input.value.trim().replace(/[^a-zA-Z0-9_-]/g, '');
+    if (!nuevoNombre) {
+        if (status) {
+            status.style.color = 'red';
+            status.innerText = "Escribe un nombre válido (letras, números, _ o -).";
+        }
+        return;
+    }
+    if (nuevoNombre.length > 20) {
+        nuevoNombre = nuevoNombre.slice(0, 20);
+    }
+
+    localStorage.setItem('ninosrata_custom_name', nuevoNombre);
+
+    try {
+        await supabaseClient.auth.updateUser({ data: { display_name: nuevoNombre } });
+        if (currentUserEmail) {
+            const baseUser = currentUserEmail.split('@')[0];
+            await supabaseClient.from('users').update({ username: nuevoNombre }).eq('username', baseUser);
+        }
+    } catch (e) {}
+
+    if (status) {
+        status.style.color = 'green';
+        status.innerText = "¡Nombre actualizado!";
+    }
+
+    const userDisplay = document.getElementById('current-user-display');
+    const pUser = document.getElementById('profile-username');
+    const navLoginBtn = document.getElementById('nav-login-btn');
+
+    if (userDisplay) userDisplay.innerHTML = obtenerBadgeUser(nuevoNombre);
+    if (pUser) pUser.innerHTML = obtenerBadgeUser(nuevoNombre);
+    if (navLoginBtn) navLoginBtn.innerText = `[ur/${nuevoNombre}]`;
+
+    renderFeed(allPostsData, allCommentsData);
 }
 
 async function enviarPost() {
@@ -141,7 +200,7 @@ async function enviarPost() {
     status.style.color = 'blue';
     status.innerText = "Publicando...";
 
-    let authorName = currentUserEmail ? currentUserEmail.split('@')[0] : 'Anónimo';
+    let authorName = obtenerNombreActivo();
 
     let { error } = await supabaseClient.from('jodidosPOST').insert([
         { username: authorName, content: content, SubForum: subForumSelect, views: 0 }
@@ -175,7 +234,7 @@ async function enviarComentario(postId) {
     if (!input) return;
     let content = input.value.trim();
     if (!content) return;
-    let authorName = currentUserEmail ? currentUserEmail.split('@')[0] : 'Anónimo';
+    let authorName = obtenerNombreActivo();
     let { error } = await supabaseClient.from('JodeteComentarios').insert([
         { post_ID: postId, username: authorName, content: content }
     ]);
@@ -244,7 +303,7 @@ async function cargarPosts() {
     let { data: comentarios } = await supabaseClient.from('JodeteComentarios').select('*').order('created_at', { ascending: true });
     let nuevosComentarios = comentarios || [];
     if (currentUserEmail && knownCommentsCount > 0 && nuevosComentarios.length > knownCommentsCount) {
-        let currentUsername = currentUserEmail.split('@')[0];
+        let currentUsername = obtenerNombreActivo();
         let misPostIds = posts.filter(p => p && p.username === currentUsername).map(p => p.id);
         nuevosComentarios.slice(knownCommentsCount).forEach(c => {
             if (c && misPostIds.includes(c.post_ID) && c.username !== currentUsername) {
@@ -271,4 +330,3 @@ window.addEventListener('hashchange', () => {
 checkSession();
 cargarBorrador();
 cargarPosts();
-setInterval(() => { cargarPosts(); }, 15000);

@@ -12,6 +12,30 @@ function obtenerBadgeUser(username) {
     return `<span class="postername">ur/${cleanUser}</span>`;
 }
 
+function inyectarEditorNombre(nombreActual) {
+    if (document.getElementById('edit-username-box')) {
+        let inp = document.getElementById('edit-username-input');
+        if (inp) inp.value = nombreActual;
+        return;
+    }
+
+    let perfilDiv = document.getElementById('tab-perfil');
+    let pUser = document.getElementById('profile-username');
+    let contenedor = pUser ? pUser.parentElement : perfilDiv;
+    if (!contenedor) return;
+
+    let box = document.createElement('div');
+    box.id = 'edit-username-box';
+    box.style.cssText = 'margin-top: 8px; padding: 6px; border-top: 1px dashed #999; font-size: 11px;';
+    box.innerHTML = `
+        <label for="edit-username-input" style="font-weight: bold;">Cambiar nombre:</label><br>
+        <input type="text" id="edit-username-input" maxlength="20" value="${escapeHtml(nombreActual)}" placeholder="Nuevo nombre..." style="margin-top: 4px; width: 65%; font-family: monospace; font-size: 11px;">
+        <button type="button" class="btn-chan" onclick="guardarNuevoNombre()" style="margin-left: 4px;">[Guardar]</button>
+        <div id="edit-name-status" style="margin-top: 4px; font-size: 10px;"></div>
+    `;
+    contenedor.appendChild(box);
+}
+
 function solicitarPermisoNotificaciones() {
     if ("Notification" in window) {
         Notification.requestPermission().then(permission => {
@@ -99,7 +123,12 @@ function focusLogin() {
         let btnCerrar = document.getElementById('btn-cerrar-post');
         if (pubDiv) pubDiv.style.display = 'none';
         if (btnCerrar) btnCerrar.style.display = 'none';
-        if (perfilDiv) perfilDiv.style.display = perfilDiv.style.display === 'none' ? 'block' : 'none';
+        if (perfilDiv) {
+            perfilDiv.style.display = perfilDiv.style.display === 'none' ? 'block' : 'none';
+            if (perfilDiv.style.display === 'block') {
+                inyectarEditorNombre(obtenerNombreActivo());
+            }
+        }
     } else {
         let emailInput = document.getElementById('email');
         if (emailInput) emailInput.focus();
@@ -171,7 +200,6 @@ function actualizarNavSubratitas() {
     navDiv.innerHTML = html;
 }
 
-// --- RENDERIZAR CONTADOR DE VISITAS RETRO CON IMÁGENES ---
 function renderizarContadorVisitas(visitas) {
     let numStr = String(visitas || 0);
     while (numStr.length < 4) {
@@ -190,7 +218,6 @@ function renderizarContadorVisitas(visitas) {
     `;
 }
 
-// --- ABRIR TEMA Y GUARDAR VISTA DIRECTO EN SUPABASE ---
 async function abrirTema(postId, pushHistory = true) {
     postActualId = postId;
     if (pushHistory) {
@@ -203,7 +230,6 @@ async function abrirTema(postId, pushHistory = true) {
             let currentViews = (postObj.views || 0) + 1;
             postObj.views = currentViews;
             
-            // LA LLAMADA REAL A SUPABASE USANDO supabaseClient
             let { error } = await supabaseClient
                 .from('jodidosPOST')
                 .update({ views: currentViews })
@@ -228,7 +254,6 @@ function volverAlFeed() {
     renderFeed(allPostsData, allCommentsData);
 }
 
-// SOPORTE BOTÓN DE ATRÁS DEL CELULAR
 window.addEventListener('popstate', (event) => {
     let hash = window.location.hash;
     if (hash.startsWith('#post-')) {
@@ -248,11 +273,8 @@ window.addEventListener('popstate', (event) => {
 function renderFeed(posts, comentarios) {
     let feed = document.getElementById('feed');
     if (!feed) return;
-    let currentUsername = currentUserEmail ? currentUserEmail.split('@')[0] : '';
+    let currentUsername = currentUserEmail ? obtenerNombreActivo() : '';
 
-    // ==========================================
-    // VISTA DE HILO INDIVIDUAL
-    // ==========================================
     if (postActualId !== null) {
         let post = posts.find(p => p && p.id == postActualId);
         if (!post) {
@@ -330,9 +352,6 @@ function renderFeed(posts, comentarios) {
         return;
     }
 
-    // ==========================================
-    // VISTA DEL FEED PRINCIPAL
-    // ==========================================
     let searchInput = document.getElementById('search-input');
     let searchQuery = searchInput && searchInput.value ? searchInput.value.toLowerCase().trim() : '';
 
@@ -388,7 +407,6 @@ function renderFeed(posts, comentarios) {
     });
 }
 
-// --- GESTIÓN DEL MENÚ DE TRES PUNTITOS Y TEMAS (ROBUSTO) ---
 function toggleMenuTresPuntitos(event) {
     if (event) event.stopPropagation();
     let menu = document.getElementById('dropdown-menu-puntitos');
