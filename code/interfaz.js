@@ -5,8 +5,37 @@ const REACCIONES = [
     {f:'si.png',l:'Sí'},
     {f:'trollface.png',l:'Troll'}
 ];
+const APK_URL = 'https://github.com/loslocos817yt-star/MorrosRata.com/raw/refs/heads/main/Ni%C3%B1os%20Ratas.apk';
 const esc = s => s ? s.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])) : '';
 const $ = id => document.getElementById(id);
+
+function esWebViewOApp() {
+    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+    if (navigator.standalone === true) return true;
+    let ua = navigator.userAgent || '';
+    if (/AppDeidadWebView|MorrosRataWebView/i.test(ua)) return true;
+    if (/;\s*wv\)/i.test(ua) || (/\bAndroid\b/i.test(ua) && /\bVersion\/\d+\.\d+/i.test(ua) && !/\bChrome\/|\bFirefox\b|\bTor\b/i.test(ua))) return true;
+    return false;
+}
+
+function cerrarPopupApp(horasDescanso = 12) {
+    localStorage.setItem('app_deidad_cooldown', String(Date.now() + horasDescanso * 3600000));
+    let p = $('popup-app-deidad');
+    if (p) p.remove();
+}
+
+function mostrarPopupAppDeidad() {
+    if (esWebViewOApp()) return;
+    if ($('popup-app-deidad')) return;
+    let hasta = parseInt(localStorage.getItem('app_deidad_cooldown') || '0', 10);
+    if (Date.now() < hasta) return;
+
+    let box = document.createElement('div');
+    box.id = 'popup-app-deidad';
+    box.style.cssText = 'position:fixed;bottom:10px;left:10px;right:10px;z-index:9999;background:#ffffcc;color:#111;border:2px solid #004d00;box-shadow:3px 3px 0 #111;padding:10px;font-family:monospace;font-size:11px;border-radius:2px';
+    box.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;font-weight:bold;color:#004d00;border-bottom:1px dashed #888;padding-bottom:4px;margin-bottom:6px"><span>🐀 appDeidad disponible</span><a onclick="cerrarPopupApp(24)" style="cursor:pointer;color:#a00;font-size:12px">[X]</a></div><div style="margin-bottom:8px;line-height:1.35">¿Cansado del navegador? Bájate <b>Niños Ratas.apk</b> para entrar más rápido.</div><div style="display:flex;gap:8px;justify-content:flex-end;align-items:center"><button type="button" class="btn-chan" onclick="cerrarPopupApp(6)">[Luego]</button><a href="${APK_URL}" target="_blank" rel="noopener" onclick="cerrarPopupApp(72)" class="btn-chan" style="text-decoration:none;font-weight:bold;background:#d8f3dc;color:#004d00;padding:4px 8px;border:1px solid #004d00">[Descargar APK]</a></div>`;
+    document.body.appendChild(box);
+}
 
 function obtenerBadgeUser(u) {
     let cu = esc(u);
@@ -241,4 +270,5 @@ function cambiarTema(t) {
 
 addEventListener('DOMContentLoaded', () => {
     document.body.className = `theme-${localStorage.getItem('ninosrata_theme') || 'original'}`;
+    setTimeout(mostrarPopupAppDeidad, 2500);
 });
