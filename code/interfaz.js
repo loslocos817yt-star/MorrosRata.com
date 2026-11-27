@@ -1,73 +1,108 @@
 let postActualId = null;
-const REACCIONES = [
-    {f:'XD.png',l:'XD'},
-    {f:'no.png',l:'No'},
-    {f:'si.png',l:'Sí'},
-    {f:'trollface.png',l:'Troll'}
-];
+const REACCIONES = [{f:'XD.png',l:'XD'},{f:'no.png',l:'No'},{f:'si.png',l:'Sí'},{f:'trollface.png',l:'Troll'}];
+const IDIOMAS = [['es','Español'],['en','English'],['ru','Русский'],['zh','中文'],['ja','日本語'],['ko','한국어'],['hi','हिन्दी']];
 const APK_URL = 'https://github.com/loslocos817yt-star/MorrosRata.com/raw/refs/heads/main/Ni%C3%B1os%20Ratas.apk';
 const esc = s => s ? s.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])) : '';
 const $ = id => document.getElementById(id);
+const getLang = () => localStorage.getItem('app_idioma') || 'es';
 
 function esWebViewOApp() {
-    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
-    if (navigator.standalone === true) return true;
+    if (window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true) return true;
     let ua = navigator.userAgent || '';
-    if (/AppDeidadWebView|MorrosRataWebView/i.test(ua)) return true;
-    if (/;\s*wv\)/i.test(ua) || (/\bAndroid\b/i.test(ua) && /\bVersion\/\d+\.\d+/i.test(ua) && !/\bChrome\/|\bFirefox\b|\bTor\b/i.test(ua))) return true;
-    return false;
+    return /AppDeidadWebView|MorrosRataWebView|;\s*wv\)/i.test(ua) || (/\bAndroid\b/i.test(ua) && /\bVersion\/\d+\.\d+/i.test(ua) && !/\bChrome\/|\bFirefox\b|\bTor\b/i.test(ua));
 }
 
-function cerrarPopupApp(horasDescanso = 12) {
-    localStorage.setItem('app_deidad_cooldown', String(Date.now() + horasDescanso * 3600000));
-    let p = $('popup-app-deidad');
-    if (p) p.remove();
+function cerrarPopupApp(h = 12) {
+    localStorage.setItem('app_deidad_cooldown', String(Date.now() + h * 3600000));
+    $('popup-app-deidad')?.remove();
 }
 
 function mostrarPopupAppDeidad() {
-    if (esWebViewOApp()) return;
-    if ($('popup-app-deidad')) return;
-    let hasta = parseInt(localStorage.getItem('app_deidad_cooldown') || '0', 10);
-    if (Date.now() < hasta) return;
-
+    if (esWebViewOApp() || $('popup-app-deidad') || Date.now() < +(localStorage.getItem('app_deidad_cooldown') || 0)) return;
     let box = document.createElement('div');
     box.id = 'popup-app-deidad';
-    box.style.cssText = 'position:fixed;bottom:10px;left:10px;right:10px;z-index:9999;background:#ffffcc;color:#111;border:2px solid #004d00;box-shadow:3px 3px 0 #111;padding:10px;font-family:monospace;font-size:11px;border-radius:2px';
-    box.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;font-weight:bold;color:#004d00;border-bottom:1px dashed #888;padding-bottom:4px;margin-bottom:6px"><span>🐀 appDeidad disponible</span><a onclick="cerrarPopupApp(24)" style="cursor:pointer;color:#a00;font-size:12px">[X]</a></div><div style="margin-bottom:8px;line-height:1.35">¿Cansado del navegador? Bájate <b>Niños Ratas.apk</b> para entrar más rápido.</div><div style="display:flex;gap:8px;justify-content:flex-end;align-items:center"><button type="button" class="btn-chan" onclick="cerrarPopupApp(6)">[Luego]</button><a href="${APK_URL}" target="_blank" rel="noopener" onclick="cerrarPopupApp(72)" class="btn-chan" style="text-decoration:none;font-weight:bold;background:#d8f3dc;color:#004d00;padding:4px 8px;border:1px solid #004d00">[Descargar APK]</a></div>`;
+    box.style.cssText = 'position:fixed;bottom:10px;left:10px;right:10px;z-index:9999;background:#ffc;color:#111;border:2px solid #004d00;box-shadow:3px 3px 0 #111;padding:8px;font:11px/1.35 monospace';
+    box.innerHTML = `<div style="display:flex;justify-content:space-between;font-weight:bold;color:#004d00;border-bottom:1px dashed #888;padding-bottom:3px;margin-bottom:5px"><span>🐀 appDeidad</span><a onclick="cerrarPopupApp(24)" style="cursor:pointer;color:#a00">[X]</a></div><div>Bájate <b>Niños Ratas.apk</b> para entrar más rápido.</div><div style="display:flex;gap:6px;justify-content:flex-end;margin-top:6px"><button type="button" class="btn-chan" onclick="cerrarPopupApp(6)">[Luego]</button><a href="${APK_URL}" target="_blank" rel="noopener" onclick="cerrarPopupApp(72)" class="btn-chan" style="text-decoration:none;font-weight:bold;background:#d8f3dc;color:#004d00;padding:3px 7px;border:1px solid #004d00">[APK]</a></div>`;
+    document.body.appendChild(box);
+}
+
+function aplicarIdiomaDOM() {
+    let lang = getLang(), feed = $('feed');
+    document.documentElement.lang = lang;
+    if (feed) { feed.setAttribute('translate', lang === 'es' ? 'no' : 'yes'); feed.lang = lang; }
+}
+
+async function traducirTextoAuto(txt, lang) {
+    if (!txt || lang === 'es') return txt;
+    let tags = [], safe = txt.replace(/\{Imagen=[a-zA-Z0-9._-]+\}/g, m => (tags.push(m), `[[IMG${tags.length - 1}]]`));
+    let k = `tr_${lang}_${safe.slice(0, 70)}_${safe.length}`;
+    if (sessionStorage.getItem(k)) return sessionStorage.getItem(k);
+    try {
+        let r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(lang)}&dt=t&q=${encodeURIComponent(safe)}`);
+        let d = await r.json();
+        let out = ((d[0] || []).map(x => x[0]).join('') || txt).replace(/\[\[\s*IMG(\d+)\s*\]\]/g, (_, i) => tags[+i] || '');
+        sessionStorage.setItem(k, out);
+        return out;
+    } catch { return txt; }
+}
+
+async function traducirPostsVisibles() {
+    let lang = getLang();
+    if (lang === 'es') return;
+    for (let el of document.querySelectorAll('#feed .message[data-raw],#feed .comment-msg[data-raw]')) {
+        let raw = el.getAttribute('data-raw');
+        if (!raw || el.getAttribute('data-done') === lang) continue;
+        el.innerHTML = formatMessage(await traducirTextoAuto(raw, lang));
+        el.setAttribute('data-done', lang);
+    }
+}
+
+function fijarIdioma(c) {
+    localStorage.setItem('app_idioma', c);
+    aplicarIdiomaDOM();
+    $('modal-idioma')?.remove();
+    if (typeof allPostsData !== 'undefined') renderFeed(allPostsData, allCommentsData || []);
+}
+
+function mostrarSelectorIdioma(forzar = false) {
+    if ((!forzar && localStorage.getItem('app_idioma')) || $('modal-idioma')) return;
+    let btns = IDIOMAS.map(([c, n]) => `<button type="button" class="btn-chan" onclick="fijarIdioma('${c}')" style="padding:5px 8px;font-size:11px;cursor:pointer">${n}</button>`).join('');
+    let box = document.createElement('div');
+    box.id = 'modal-idioma';
+    box.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:12px';
+    box.innerHTML = `<div style="background:#ffc;color:#111;border:2px solid #004d00;box-shadow:4px 4px 0 #111;max-width:320px;width:100%;padding:10px;font-family:monospace"><div style="font-weight:bold;color:#004d00;border-bottom:1px dashed #888;padding-bottom:4px;margin-bottom:8px;font-size:12px">🌐 Idioma / Language</div><div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">${btns}</div></div>`;
     document.body.appendChild(box);
 }
 
 function obtenerBadgeUser(u) {
-    let cu = esc(u);
     let badge = ADMIN_USERS.includes(u) ? ` <img src="assets/web/admin.log.png" alt="Admin" style="height:18px;vertical-align:middle;margin:0 4px">` : '';
-    return `<span class="postername">ur/${cu}</span>${badge}`;
+    return `<span class="postername">ur/${esc(u)}</span>${badge}`;
 }
 
 function insertarTagImagen(postId, fileName) {
     let ta = $(`comment-input-${postId}`);
     if (!ta) return;
-    let tag = `{Imagen=${fileName}}`;
     let sep = ta.value && !ta.value.endsWith('\n') && !ta.value.endsWith(' ') ? '\n' : '';
-    ta.value = `${ta.value}${sep}${tag}`;
+    ta.value = `${ta.value}${sep}{Imagen=${fileName}}`;
     ta.focus();
 }
 
 function pintSelResp(postId) {
     let c = $('selector-respuestas-img');
     if (!c) return;
-    let btns = REACCIONES.map(r => `<button type="button" onclick="insertarTagImagen(${postId},'${r.f}')" style="display:inline-flex;flex-direction:column;align-items:center;padding:3px;cursor:pointer;border:1px solid #888;background:#fff;border-radius:2px"><img src="assets/respuestas/${r.f}" alt="${r.l}" style="width:34px;height:34px;object-fit:cover"><span style="font-size:9px;font-family:monospace">${r.l}</span></button>`).join('');
-    c.innerHTML = `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">${btns}</div><div style="margin-top:4px;font-size:10px;color:#555;font-family:monospace">Toca para insertar <b>{Imagen=archivo.png}</b></div>`;
+    let btns = REACCIONES.map(r => `<button type="button" onclick="insertarTagImagen(${postId},'${r.f}')" style="display:inline-flex;flex-direction:column;align-items:center;padding:3px;cursor:pointer;border:1px solid #888;background:#fff"><img src="assets/respuestas/${r.f}" alt="${r.l}" style="width:34px;height:34px;object-fit:cover"><span style="font-size:9px;font-family:monospace">${r.l}</span></button>`).join('');
+    c.innerHTML = `<div style="display:flex;gap:6px;flex-wrap:wrap">${btns}</div><div style="margin-top:4px;font-size:10px;color:#555;font-family:monospace">Toca para insertar <b>{Imagen=archivo.png}</b></div>`;
 }
 
 function inyectarEditorNombre(actual) {
     let inp = $('edit-username-input');
     if (inp) { inp.value = actual; return; }
-    let cont = $('profile-username') ? $('profile-username').parentElement : $('tab-perfil');
+    let cont = $('profile-username')?.parentElement || $('tab-perfil');
     if (!cont) return;
     let d = document.createElement('div');
     d.id = 'edit-username-box';
     d.style.cssText = 'margin-top:8px;padding:6px;border-top:1px dashed #999;font-size:11px';
-    d.innerHTML = `<label for="edit-username-input" style="font-weight:bold">Cambiar nombre:</label><br><input type="text" id="edit-username-input" maxlength="20" value="${esc(actual)}" style="margin-top:4px;width:65%;font-family:monospace;font-size:11px"><button type="button" class="btn-chan" onclick="guardarNuevoNombre()" style="margin-left:4px">[Guardar]</button><div id="edit-name-status" style="margin-top:4px;font-size:10px"></div>`;
+    d.innerHTML = `<label for="edit-username-input" style="font-weight:bold">Cambiar nombre:</label><br><input type="text" id="edit-username-input" maxlength="20" value="${esc(actual)}" style="margin-top:4px;width:65%;font:11px monospace"><button type="button" class="btn-chan" onclick="guardarNuevoNombre()" style="margin-left:4px">[Guardar]</button><div id="edit-name-status" style="margin-top:4px;font-size:10px"></div>`;
     cont.appendChild(d);
 }
 
@@ -86,7 +121,7 @@ function togglePublishBox() {
     let open = pub.style.display === 'none' || pub.style.display === '';
     pub.style.display = open ? 'block' : 'none';
     if (btn) btn.style.display = open ? 'inline-block' : 'none';
-    if (open && $('p-subratita')) $('p-subratita').focus();
+    if (open) $('p-subratita')?.focus();
 }
 
 function cerrarCajaPost() {
@@ -113,7 +148,7 @@ function cargarBorrador() {
 }
 
 function focusLogin() {
-    if (!currentUserEmail) return $('email') && $('email').focus();
+    if (!currentUserEmail) return $('email')?.focus();
     let per = $('tab-perfil'), pub = $('tab-publicar'), btn = $('btn-cerrar-post');
     if (pub) pub.style.display = 'none';
     if (btn) btn.style.display = 'none';
@@ -168,7 +203,7 @@ function actualizarNavSubratitas() {
 function renderizarContadorVisitas(v) {
     let s = String(v || 0).padStart(4, '0');
     let imgs = [...s].map(d => `<img src="assets/ui/numeros/${d}.png" alt="${d}" style="width:14px;height:20px;image-rendering:pixelated;vertical-align:middle;margin-right:1px">`).join('');
-    return `<div style="display:inline-flex;align-items:center;background:#111;padding:3px 6px;border:2px solid #444;border-radius:2px"><span style="font-size:9px;color:#0f6;margin-right:5px;font-family:monospace;font-weight:bold">VISITAS:</span>${imgs}</div>`;
+    return `<div style="display:inline-flex;align-items:center;background:#111;padding:3px 6px;border:2px solid #444"><span style="font-size:9px;color:#0f6;margin-right:5px;font:bold 9px monospace">VISITAS:</span>${imgs}</div>`;
 }
 
 async function abrirTema(id, push = true) {
@@ -182,7 +217,7 @@ async function abrirTema(id, push = true) {
             let { error } = await supabaseClient.from('jodidosPOST').update({ views: v }).eq('id', id);
             if (error) console.log("Error views:", error.message);
         }
-    } catch (e) {}
+    } catch {}
     renderFeed(allPostsData, allCommentsData);
     scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -205,12 +240,13 @@ const likeBtn = id => `<span class="reply-btn" style="color:#b35900;display:inli
 function renderFeed(posts, comentarios) {
     let feed = $('feed');
     if (!feed) return;
+    aplicarIdiomaDOM();
     let me = currentUserEmail ? obtenerNombreActivo() : '';
 
     if (postActualId !== null) {
         let p = posts.find(x => x && x.id == postActualId);
         if (!p) {
-            feed.innerHTML = `<div style="text-align:center;font-size:11px;padding:20px">El hilo no existe o fue borrado.<br><br><button class="btn-chan" onclick="volverAlFeed()">[← Volver al Índice]</button></div>`;
+            feed.innerHTML = `<div style="text-align:center;font-size:11px;padding:20px">No existe el hilo.<br><br><button class="btn-chan" onclick="volverAlFeed()">[← Volver]</button></div>`;
             return;
         }
         let fecha = p.created_at ? new Date(p.created_at).toLocaleString() : 'Fecha desconocida';
@@ -218,48 +254,49 @@ function renderFeed(posts, comentarios) {
         let cs = comentarios ? comentarios.filter(c => c && c.post_ID == p.id) : [];
         let cHtml = cs.map(c => {
             let del = me && me === (c.username || 'Anónimo') ? `<span class="delete-btn" onclick="borrarComentario(${c.id})">[Borrar]</span>` : '';
-            return `<div class="comment-card">${obtenerBadgeUser(c.username||'Anónimo')} <span style="color:#666;font-size:10px">${c.created_at?new Date(c.created_at).toLocaleString():''}</span>${del}<div style="margin-top:4px">${formatMessage(c.content)}</div></div>`;
+            return `<div class="comment-card">${obtenerBadgeUser(c.username||'Anónimo')} <span style="color:#666;font-size:10px">${c.created_at?new Date(c.created_at).toLocaleString():''}</span>${del}<div class="comment-msg" data-raw="${esc(c.content)}" style="margin-top:4px">${formatMessage(c.content)}</div></div>`;
         }).join('');
         let form = currentUserEmail
-            ? `<div style="margin-top:12px;background:#eef2f7;padding:10px;border:1px solid #b0c4de"><div style="font-weight:bold;margin-bottom:5px;font-size:11px;color:#004d00">Escribir respuesta:</div><textarea id="comment-input-${p.id}" rows="3" maxlength="500" placeholder="Escribe o pega {Imagen=XD.png}..." style="width:96%;font-family:monospace;font-size:11px;padding:6px"></textarea><div id="selector-respuestas-img" style="margin-top:6px"></div><div style="text-align:right;margin-top:6px"><button class="btn-chan" onclick="enviarComentario(${p.id})">Enviar Respuesta</button></div></div>`
+            ? `<div style="margin-top:12px;background:#eef2f7;padding:10px;border:1px solid #b0c4de"><div style="font-weight:bold;margin-bottom:5px;font-size:11px;color:#004d00">Responder:</div><textarea id="comment-input-${p.id}" rows="3" maxlength="500" placeholder="Escribe o pega {Imagen=XD.png}..." style="width:96%;font:11px monospace;padding:6px"></textarea><div id="selector-respuestas-img" style="margin-top:6px"></div><div style="text-align:right;margin-top:6px"><button class="btn-chan" onclick="enviarComentario(${p.id})">Enviar</button></div></div>`
             : `<div style="font-size:11px;color:#666;margin-top:10px;text-align:center">(Inicia sesión para responder)</div>`;
         let delPost = me && me === (p.username || 'Anónimo') ? `<span class="delete-btn" onclick="borrarPost(${p.id})">[Borrar Tema]</span>` : '';
 
-        feed.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;background:#d8e6d8;padding:6px 10px;margin-bottom:10px;border:1px solid #b0c9b0"><a onclick="volverAlFeed()" style="cursor:pointer;color:#004d00;font-weight:bold;font-size:11px">← Volver al tablón (sr/${sub})</a>${renderizarContadorVisitas(p.views||0)}</div><div class="post-card" id="post-${p.id}" style="border:2px solid #2b5c2b"><div class="post-header" style="font-weight:bold">${obtenerBadgeUser(p.username||'Anónimo')} <span style="color:#004400">sr/${sub}</span> <span>${fecha}</span><span style="float:right">No. ${p.id}</span></div><div class="message" style="margin-top:8px">${formatMessage(p.content)}</div><div style="margin-top:10px;border-top:1px dashed #ccc;padding-top:6px;display:flex;gap:10px;align-items:center">${likeBtn(p.id)} (${p.likes||0}) <span class="reply-btn" style="color:#006600" onclick="copiarLinkPost(${p.id})">[Compartir Link]</span>${delPost}</div></div><div style="margin:15px 0 8px;font-size:12px;font-weight:bold;color:#004d00;border-bottom:2px solid #2b5c2b;padding-bottom:3px">💬 Comentarios (${cs.length})</div><div class="comments-section" style="margin-left:0">${cHtml || `<div style="font-size:11px;color:#666;padding:10px;text-align:center">Sin comentarios todavía.</div>`}</div>${form}`;
+        feed.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;background:#d8e6d8;padding:6px 10px;margin-bottom:10px;border:1px solid #b0c9b0"><a onclick="volverAlFeed()" style="cursor:pointer;color:#004d00;font-weight:bold;font-size:11px">← Volver (sr/${sub})</a>${renderizarContadorVisitas(p.views||0)}</div><div class="post-card" id="post-${p.id}" style="border:2px solid #2b5c2b"><div class="post-header" style="font-weight:bold">${obtenerBadgeUser(p.username||'Anónimo')} <span style="color:#004400">sr/${sub}</span> <span>${fecha}</span><span style="float:right">No. ${p.id}</span></div><div class="message" data-raw="${esc(p.content)}" style="margin-top:8px">${formatMessage(p.content)}</div><div style="margin-top:10px;border-top:1px dashed #ccc;padding-top:6px;display:flex;gap:10px;align-items:center">${likeBtn(p.id)} (${p.likes||0}) <span class="reply-btn" style="color:#006600" onclick="copiarLinkPost(${p.id})">[Link]</span>${delPost}</div></div><div style="margin:15px 0 8px;font-size:12px;font-weight:bold;color:#004d00;border-bottom:2px solid #2b5c2b;padding-bottom:3px">💬 Comentarios (${cs.length})</div><div class="comments-section" style="margin-left:0">${cHtml || `<div style="font-size:11px;color:#666;padding:10px;text-align:center">Sin comentarios todavía.</div>`}</div>${form}`;
         pintSelResp(p.id);
+        traducirPostsVisibles();
         return;
     }
 
-    let q = $('search-input') && $('search-input').value ? $('search-input').value.toLowerCase().trim() : '';
+    let q = $('search-input')?.value?.toLowerCase().trim() || '';
     let list = posts.filter(p => {
         if (!p) return false;
         let sub = p.SubForum || p.subforum || 'general';
-        let okSub = currentSubratitaFiltro === 'todos' || sub === currentSubratitaFiltro;
-        let okQ = !q || (p.username||'').toLowerCase().includes(q) || (p.content||'').toLowerCase().includes(q) || sub.toLowerCase().includes(q);
-        return okSub && okQ;
+        return (currentSubratitaFiltro === 'todos' || sub === currentSubratitaFiltro) &&
+            (!q || (p.username||'').toLowerCase().includes(q) || (p.content||'').toLowerCase().includes(q) || sub.toLowerCase().includes(q));
     });
 
     if (!list.length) {
-        feed.innerHTML = `<div style="text-align:center;font-size:11px;padding:20px">No se encontraron publicaciones en este SubForum.</div>`;
+        feed.innerHTML = `<div style="text-align:center;font-size:11px;padding:20px">Sin posts en este SubForum.</div>`;
         return;
     }
 
     feed.innerHTML = list.map(p => {
         let sub = p.SubForum || p.subforum || 'general';
         let nCom = comentarios ? comentarios.filter(c => c && c.post_ID == p.id).length : 0;
-        return `<div class="post-card" id="post-${p.id}"><div class="post-header">${obtenerBadgeUser(p.username||'Anónimo')} <span style="color:#004400;font-weight:bold;cursor:pointer" onclick="filtrarPorSubratita('${sub}')">sr/${sub}</span> <span>${p.created_at?new Date(p.created_at).toLocaleString():'Fecha desconocida'}</span><span style="float:right">No. ${p.id}</span></div><div class="message">${formatMessage(p.content)}</div><div style="font-size:11px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;border-top:1px dashed #ddd;padding-top:6px"><div style="display:flex;gap:10px;align-items:center"><span class="reply-btn" onclick="abrirTema(${p.id})" style="font-weight:bold;color:#0033aa">[Ver Comentarios (${nCom})]</span>${likeBtn(p.id)} (${p.likes||0}) <span class="reply-btn" style="color:#006600" onclick="copiarLinkPost(${p.id})">[Compartir]</span></div><div style="font-size:10px;color:#555">👁️ ${p.views||0} visitas</div></div></div>`;
+        return `<div class="post-card" id="post-${p.id}"><div class="post-header">${obtenerBadgeUser(p.username||'Anónimo')} <span style="color:#004400;font-weight:bold;cursor:pointer" onclick="filtrarPorSubratita('${sub}')">sr/${sub}</span> <span>${p.created_at?new Date(p.created_at).toLocaleString():'Fecha desconocida'}</span><span style="float:right">No. ${p.id}</span></div><div class="message" data-raw="${esc(p.content)}">${formatMessage(p.content)}</div><div style="font-size:11px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;border-top:1px dashed #ddd;padding-top:6px"><div style="display:flex;gap:10px;align-items:center"><span class="reply-btn" onclick="abrirTema(${p.id})" style="font-weight:bold;color:#0033aa">[Comentarios (${nCom})]</span>${likeBtn(p.id)} (${p.likes||0}) <span class="reply-btn" style="color:#006600" onclick="copiarLinkPost(${p.id})">[Link]</span></div><div style="font-size:10px;color:#555">👁️ ${p.views||0} visitas</div></div></div>`;
     }).join('');
+    traducirPostsVisibles();
 }
 
 function toggleMenuTresPuntitos(e) {
-    if (e) e.stopPropagation();
+    e?.stopPropagation();
     let m = $('dropdown-menu-puntitos');
     if (m) m.style.display = m.style.display === 'block' ? 'none' : 'block';
 }
 
 document.addEventListener('click', e => {
-    let m = $('dropdown-menu-puntitos'), btn = e.target.closest('button[onclick*="toggleMenuTresPuntitos"]');
-    if (m && !m.contains(e.target) && !btn) m.style.display = 'none';
+    let m = $('dropdown-menu-puntitos');
+    if (m && !m.contains(e.target) && !e.target.closest('button[onclick*="toggleMenuTresPuntitos"]')) m.style.display = 'none';
 });
 
 function cambiarTema(t) {
@@ -270,5 +307,7 @@ function cambiarTema(t) {
 
 addEventListener('DOMContentLoaded', () => {
     document.body.className = `theme-${localStorage.getItem('ninosrata_theme') || 'original'}`;
+    aplicarIdiomaDOM();
+    mostrarSelectorIdioma(false);
     setTimeout(mostrarPopupAppDeidad, 2500);
 });
